@@ -40,7 +40,9 @@ from pyspark.sql.types import *
 # MAGIC FieldName string,
 # MAGIC IsSurrogateKeyFlg boolean,
 # MAGIC IsBusinessKeyFlg boolean,
-# MAGIC IsTimestampFlg boolean
+# MAGIC IsTimestampFlg boolean,
+# MAGIC IsForeignKeyFlg boolean,
+# MAGIC ForeignKeyTableName string
 # MAGIC )
 # MAGIC USING DELTA;
 
@@ -56,9 +58,11 @@ from pyspark.sql.types import *
 # MAGIC select * from ETL.TableNames;
 # MAGIC 
 # MAGIC truncate table ETL.TableFields;
-# MAGIC insert into ETL.TableFields values ('DimProductSubcategory','ProductSubcategoryKey',true,false,false),('DimProductSubcategory','ProductSubcategoryID',false,true,false),('DimProductSubcategory','ProductCategoryID',false,false,false),('DimProductSubcategory','Name',false,false,false),('DimProductSubcategory','rowguid',false,false,false),('DimProductSubcategory','ModifiedDate',false,false,true);
-# MAGIC insert into ETL.TableFields values ('DimProductCategory','ProductCategoryKey',true,false,false),('DimProductCategory','ProductCategoryID',false,true,false),('DimProductCategory','Name',false,false,false),('DimProductCategory','rowguid',false,false,false),('DimProductCategory','ModifiedDate',false,false,true);
-# MAGIC select * from ETL.TableFields order by TableName
+# MAGIC insert into ETL.TableFields values ('DimProductSubcategory','ProductSubcategoryKey',true,false,false,false,null),('DimProductSubcategory','ProductSubcategoryID',false,true,false,false,null),('DimProductSubcategory','ProductCategoryID',false,false,false,true,'DimProductCategory'),('DimProductSubcategory','Name',false,false,false,false,null),('DimProductSubcategory','rowguid',false,false,false,false,null),('DimProductSubcategory','ModifiedDate',false,false,true,false,null);
+# MAGIC insert into ETL.TableFields values ('DimProductCategory','ProductCategoryKey',true,false,false,false,null),('DimProductCategory','ProductCategoryID',false,true,false,false,null),('DimProductCategory','Name',false,false,false,false,null),('DimProductCategory','rowguid',false,false,false,false,null),('DimProductCategory','ModifiedDate',false,false,true,false,null);
+# MAGIC 
+# MAGIC -- insert into ETL.TableFields values ('DimProductCategory','ProductCategoryKey',true,false,false,false,null),('DimProductCategory','ProductCategoryID',false,true,false,false,null),('DimProductCategory','Name',false,false,false,false,null),('DimProductCategory','rowguid',false,false,false,false,null),('DimProductCategory','ModifiedDate',false,false,true,false,null);
+# MAGIC -- select * from ETL.TableFields order by TableName
 
 # COMMAND ----------
 
@@ -168,22 +172,19 @@ def getJoinConditions(TableName):
 def getTimestampField(TableName):
   sqlTimestmp="SELECT FieldName FROM ETL.TableFields WHERE TableName='{0}' and IsTimestampFlg=true".format(TableName)
   tmsDf=spark.sql(sqlTimestmp)
-  for row in tmsDf.collect():
-    timestmpFldNm=row.FieldName
-  return timestmpFldNm
+  return tmsDf.first()['FieldName']
+
 
 def getWatermarkData(TableName):
   sqlStrWtrm=("SELECT WatermarkDate,LastId FROM ETL.TableNames where TableName_SLV='{0}'").format(TableName)
   dfWM=spark.sql(sqlStrWtrm)
-  return (dfWM.collect()[0])  
+  return (dfWM.first())  
 
 def updateWatermarkData(TableName):
   sqlKeys="SELECT FieldName FROM ETL.TableFields WHERE TableName='{0}' and IsSurrogateKeyFlg=true".format(TableName)
-  keysDf=spark.sql(sqlKeys)
-  surrKeyName=keysDf.collect()[0].FieldName
+  surrKeyName=spark.sql(sqlKeys).first().FieldName
   sqlMaxVal="SELECT MAX({1}) AS MaxID FROM SILVER.{0} ".format(TableName,surrKeyName)
-  maxValDf=spark.sql(sqlMaxVal)
-  maxID=maxValDf.collect()[0].MaxID
+  maxID=spark.sql(sqlMaxVal).first()['MaxID']
   sqlStrWtrm=("UPDATE ETL.TableNames SET WatermarkDate =current_timestamp(),LastId={0} WHERE TableName_SLV='{1}'").format(maxID,TableName)
   print (sqlStrWtrm)
   dfWM=spark.sql(sqlStrWtrm)
@@ -192,7 +193,7 @@ def updateWatermarkData(TableName):
 def getBronzeTableName(TableName):
   sqlStrWtrm=("SELECT TableName_BRZ FROM ETL.TableNames where TableName_SLV='{0}'").format(TableName)
   dfWM=spark.sql(sqlStrWtrm)
-  return (dfWM.collect()[0].TableName_BRZ)  
+  return (dfWM.first()['TableName_BRZ'])  
 
 def getInsertSQLCmd(lastId,dimTableName,brzTableName,tmspFld,lastUpdDt,joinCond):
   return (("INSERT INTO SILVER.{1} SELECT (ROW_NUMBER() OVER (ORDER BY S.{3})+{0}) AS DimSurrKey,S.*,current_timestamp() as ValidFromDate,cast('9999-12-31' as timestamp) AS ValidToDate\
@@ -239,7 +240,44 @@ def silverIngestions():
 
 # COMMAND ----------
 
+def getForeignSurrKeyMetadata(TableName):
+  sqlKeys="SELECT FieldName,ForeignKeyTableName FROM ETL.TableFields WHERE TableName='{0}' and IsForeignKeyFlg=true".format(TableName)
+  primFieldName,foreignKeyTableName=spark.sql(sqlKeys).first()
+#   print (fieldName,foreignKeyTableName)
+  sqlKeys="SELECT FieldName FROM ETL.TableFields WHERE TableName='{0}' and IsSurrogateKeyFlg=true".format(foreignKeyTableName)
+  foreignSurrKeyName=spark.sql(sqlKeys).first().FieldName
+  sqlKeys="SELECT FieldName FROM ETL.TableFields WHERE TableName='{0}' and IsBusinessKeyFlg=true".format(foreignKeyTableName)
+  foreignBussKeyName=spark.sql(sqlKeys).first().FieldName
+  return (primFieldName,foreignKeyTableName,foreignSurrKeyName,foreignBussKeyName)
+
+def getFieldList(TableName,includeForeignKeyFlg=False):  
+  sqlKeys="SELECT FieldName FROM ETL.TableFields WHERE TableName='{0}' AND IsForeignKeyFlg=false".format(TableName,includeForeignKeyFlg)
+  return spark.sql(sqlKeys).collect()
+
+def getForeignSurrKeyDF(tableName): #,primFieldName,foreignKeyTableName,foreignSurrKeyName):
+  primFieldName,fnKeyTableName,fnSurrKeyName,fnBussKeyName=getForeignSurrKeyMetadata(tableName)
+  fldList =getFieldList(tableName)
+  sqlCmd="SELECT "
+  for fld in fldList:
+     sqlCmd+="S.{0},".format(fld["FieldName"])
+  sqlCmd+="T.{0} FROM SILVER.{1} AS S JOIN SILVER.{2} AS T ON S.{3}=T.{4}".format(fnSurrKeyName,tableName,fnKeyTableName,primFieldName,fnBussKeyName)
+  print (sqlCmd)
+  return (sqlCmd)
+
+# COMMAND ----------
+
 # MAGIC %md ####Validation
+
+# COMMAND ----------
+
+sqlCmd=getForeignSurrKeyDF("DimProductSubcategory")
+df=spark.sql(sqlCmd)
+display(df)
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT S.ProductSubcategoryID,S.ProductCategoryID,S.ProductSubcategoryKey,S.rowguid,S.ModifiedDate,S.Name,T.ProductCategoryKey FROM SILVER.DimProductSubcategory AS S JOIN SILVER.DimProductCategory AS T ON S.ProductCategoryID=T.ProductCategoryID
 
 # COMMAND ----------
 
@@ -256,7 +294,13 @@ silverIngestions()
 
 # COMMAND ----------
 
-updateWatermarkData("DimProductSubcategory")
+# getTimestampField("DimProductSubcategory")
+lastUpdDt,lastId=getWatermarkData("DimProductSubcategory")
+print(lastUpdDt,lastId)
+
+# COMMAND ----------
+
+getBronzeTableName("DimProductSubcategory")
 
 # COMMAND ----------
 
