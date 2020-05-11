@@ -1,0 +1,455 @@
+# Databricks notebook source
+blobaccname=dbutils.secrets.get(scope="AiKvScope2", key="blobAccName")
+blobkey=dbutils.secrets.get(scope="AiKvScope2", key="blobkey")
+dbutils.fs.mount(source = "wasbs://mda@{0}.blob.core.windows.net".format(blobaccname),mount_point = "/mnt/mda/",
+    extra_configs = {"fs.azure.account.key.{0}.blob.core.windows.net".format(blobaccname):"{0}".format(blobkey)})
+
+# COMMAND ----------
+
+from pyspark.sql.types import *
+# from pyspark.sql.types import datetime
+
+# COMMAND ----------
+
+# MAGIC %md ####Create metadata tables
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC CREATE DATABASE IF NOT EXISTS BRONZE;
+# MAGIC CREATE DATABASE IF NOT EXISTS SILVER;
+# MAGIC CREATE DATABASE IF NOT EXISTS GOLD;
+# MAGIC CREATE DATABASE IF NOT EXISTS ETL;
+# MAGIC 
+# MAGIC drop table if exists ETL.TableNames;
+# MAGIC create  table ETL.TableNames (
+# MAGIC TableName_GLD string,
+# MAGIC TableName_SLV string,
+# MAGIC TableName_BRZ string,
+# MAGIC SourcePath string,
+# MAGIC TableType string,
+# MAGIC ChangeType int,
+# MAGIC WatermarkDate timestamp,
+# MAGIC LastId int
+# MAGIC )
+# MAGIC USING DELTA;
+# MAGIC 
+# MAGIC drop table if exists ETL.TableFields; 
+# MAGIC create  table ETL.TableFields (
+# MAGIC TableName string,
+# MAGIC FieldName string,
+# MAGIC IsSurrogateKeyFlg boolean,
+# MAGIC IsBusinessKeyFlg boolean,
+# MAGIC IsTimestampFlg boolean
+# MAGIC )
+# MAGIC USING DELTA;
+
+# COMMAND ----------
+
+# MAGIC %md ####Populate metadata tables
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC truncate table  ETL.TableNames;
+# MAGIC insert into ETL.TableNames values ('DimProductSubcategory','DimProductSubcategory','ProductSubcategory','/mnt/mda/source/ProductSubcategory/','D',2,cast('1900-01-01' as timestamp),0),('DimProductCategory','DimProductCategory','ProductCategory','/mnt/mda/source/ProductCategory/','D',2,cast('1900-01-01' as timestamp),0);
+# MAGIC select * from ETL.TableNames;
+# MAGIC 
+# MAGIC truncate table ETL.TableFields;
+# MAGIC insert into ETL.TableFields values ('DimProductSubcategory','ProductSubcategoryKey',true,false,false),('DimProductSubcategory','ProductSubcategoryID',false,true,false),('DimProductSubcategory','ProductCategoryID',false,false,false),('DimProductSubcategory','Name',false,false,false),('DimProductSubcategory','rowguid',false,false,false),('DimProductSubcategory','ModifiedDate',false,false,true);
+# MAGIC insert into ETL.TableFields values ('DimProductCategory','ProductCategoryKey',true,false,false),('DimProductCategory','ProductCategoryID',false,true,false),('DimProductCategory','Name',false,false,false),('DimProductCategory','rowguid',false,false,false),('DimProductCategory','ModifiedDate',false,false,true);
+# MAGIC select * from ETL.TableFields order by TableName
+
+# COMMAND ----------
+
+# MAGIC %sql select * from ETL.TableNames;
+
+# COMMAND ----------
+
+# MAGIC %md ####Create DWH tables
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC --BRONZE
+# MAGIC drop table if exists BRONZE.ProductSubcategory;
+# MAGIC CREATE TABLE BRONZE.ProductSubcategory(
+# MAGIC 	ProductSubcategoryID int,
+# MAGIC 	ProductCategoryID int,
+# MAGIC 	Name  string,
+# MAGIC 	rowguid string,
+# MAGIC 	ModifiedDate timestamp
+# MAGIC      ) USING DELTA;
+# MAGIC 
+# MAGIC drop table if exists BRONZE.ProductCategory;
+# MAGIC CREATE TABLE BRONZE.ProductCategory(
+# MAGIC 	ProductCategoryID int,
+# MAGIC 	Name  string,
+# MAGIC 	rowguid string,
+# MAGIC 	ModifiedDate timestamp
+# MAGIC  ) USING DELTA;   
+# MAGIC 
+# MAGIC --SILVER 
+# MAGIC drop table if exists SILVER.DimProductSubcategory;
+# MAGIC CREATE TABLE SILVER.DimProductSubcategory(
+# MAGIC     ProductSubcategoryKey int,
+# MAGIC 	ProductSubcategoryID int,
+# MAGIC 	ProductCategoryID int,
+# MAGIC 	Name  string,
+# MAGIC 	rowguid string,
+# MAGIC 	ModifiedDate timestamp,
+# MAGIC     ValidFromDate timestamp,
+# MAGIC     ValidToDate timestamp    
+# MAGIC     ) USING DELTA;
+# MAGIC 
+# MAGIC drop table if exists SILVER.DimProductCategory;
+# MAGIC CREATE TABLE SILVER.DimProductCategory(
+# MAGIC     ProductCategoryKey int,
+# MAGIC 	ProductCategoryID int,
+# MAGIC 	Name  string,
+# MAGIC 	rowguid string,
+# MAGIC 	ModifiedDate timestamp,
+# MAGIC     ValidFromDate timestamp,
+# MAGIC     ValidToDate timestamp       
+# MAGIC  ) USING DELTA;   
+
+# COMMAND ----------
+
+# MAGIC %md ##Utility functions
+
+# COMMAND ----------
+
+# MAGIC %md ####BRONZE level ingestions
+
+# COMMAND ----------
+
+def readBronzeTables(tableArr):
+  for tableItem in tableArr:
+      sourcePath="{0}{1}.csv".format(tableItem.SourcePath,tableItem.TableName_BRZ)
+      df=spark.read.csv(sourcePath,header=True)
+      df.createOrReplaceTempView("TempSource")
+      sqlStr="INSERT INTO BRONZE.{0} SELECT * FROM TempSource".format(tableItem.TableName_BRZ)
+#       print(sqlStr)
+      spark.sql(sqlStr)
+  print(df.count())
+  return  
+
+def bronzeIngestions():
+  df=spark.sql("Select TableName_BRZ,SourcePath from ETL.TableNames")
+  tbsArr=df.collect()
+  readBronzeTables(tbsArr)
+  return
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC -- truncate table BRONZE.ProductSubcategory;
+# MAGIC -- truncate table BRONZE.ProductCategory
+# MAGIC select * from BRONZE.ProductSubcategory;
+# MAGIC -- select * from BRONZE.ProductCategory
+
+# COMMAND ----------
+
+# MAGIC %md ####SILVER level ingestions
+
+# COMMAND ----------
+
+def getJoinConditions(TableName):
+  sqlKeys="SELECT FieldName FROM ETL.TableFields WHERE TableName='{0}' and IsBusinessKeyFlg=true".format(TableName)
+#   print (sqlKeys)
+  keysDf=spark.sql(sqlKeys)
+  joinCond=""
+  for keyFld in keysDf.collect():
+    if len(joinCond)>0:
+      joinCond+=" and "
+    joinCond+=" S.{0}=T.{0}".format(keyFld.FieldName)
+  return joinCond
+
+def getTimestampField(TableName):
+  sqlTimestmp="SELECT FieldName FROM ETL.TableFields WHERE TableName='{0}' and IsTimestampFlg=true".format(TableName)
+  tmsDf=spark.sql(sqlTimestmp)
+  for row in tmsDf.collect():
+    timestmpFldNm=row.FieldName
+  return timestmpFldNm
+
+def getWatermarkData(TableName):
+  sqlStrWtrm=("SELECT WatermarkDate,LastId FROM ETL.TableNames where TableName_SLV='{0}'").format(TableName)
+  dfWM=spark.sql(sqlStrWtrm)
+  return (dfWM.collect()[0])  
+
+def updateWatermarkData(TableName):
+  sqlKeys="SELECT FieldName FROM ETL.TableFields WHERE TableName='{0}' and IsSurrogateKeyFlg=true".format(TableName)
+  keysDf=spark.sql(sqlKeys)
+  surrKeyName=keysDf.collect()[0].FieldName
+  sqlMaxVal="SELECT MAX({1}) AS MaxID FROM SILVER.{0} ".format(TableName,surrKeyName)
+  maxValDf=spark.sql(sqlMaxVal)
+  maxID=maxValDf.collect()[0].MaxID
+  sqlStrWtrm=("UPDATE ETL.TableNames SET WatermarkDate =current_timestamp(),LastId={0} WHERE TableName_SLV='{1}'").format(maxID,TableName)
+  print (sqlStrWtrm)
+  dfWM=spark.sql(sqlStrWtrm)
+  return 
+
+def getBronzeTableName(TableName):
+  sqlStrWtrm=("SELECT TableName_BRZ FROM ETL.TableNames where TableName_SLV='{0}'").format(TableName)
+  dfWM=spark.sql(sqlStrWtrm)
+  return (dfWM.collect()[0].TableName_BRZ)  
+
+def getInsertSQLCmd(lastId,dimTableName,brzTableName,tmspFld,lastUpdDt,joinCond):
+  return (("INSERT INTO SILVER.{1} SELECT (ROW_NUMBER() OVER (ORDER BY S.{3})+{0}) AS DimSurrKey,S.*,current_timestamp() as ValidFromDate,cast('9999-12-31' as timestamp) AS ValidToDate\
+ FROM BRONZE.{2} AS S LEFT JOIN SILVER.{1} AS T ON {5} where T.{3} IS NULL AND S.{3}>='{4}'").format(lastId,dimTableName,brzTableName,tmspFld,lastUpdDt,joinCond))
+
+# def getMatchSQLCmd(lastId,dimTableName,brzTableName,tmspFld,lastUpdDt,joinCond,matchFlg):
+#   if matchFlg==True:
+#     matchCond="not null"
+#   else: 
+#     matchCond= "null" 
+#   return (("SELECT (ROW_NUMBER() OVER (ORDER BY S.{3})+{0}) AS DimSurrKey,S.*,current_timestamp() as ValidFromDate,cast('9999-12-31' as timestamp) AS ValidToDate\
+#  FROM BRONZE.{2} AS S LEFT JOIN SILVER.{1} AS T ON {5} where T.{3} is {6} and S.{3}>='{4}'").format(lastId,dimTableName,brzTableName,tmspFld,lastUpdDt,joinCond,matchCond))
+
+def getMergeSQLCmd(lastId,dimTableName,brzTableName,tmspFld,lastUpdDt,joinCond):
+  return (("MERGE INTO SILVER.{0} AS T USING BRONZE.{1} AS S ON {4} AND S.{3}>='{2}' \
+  WHEN MATCHED THEN UPDATE SET ValidToDate=current_timestamp()").format(dimTableName,brzTableName,lastUpdDt,tmspFld,joinCond))
+
+def getDimResults(dimTableName):
+  joinCond=getJoinConditions(dimTableName)               #Get join conditions
+  tmspFld=getTimestampField(dimTableName)                #Get timestamp field name
+  lastUpdDt,lastId=getWatermarkData(dimTableName)        #Get watermark data    
+  brzTableName=getBronzeTableName(dimTableName)          #Get BRONZE table name   
+#   sqlStrMatch=getMatchSQLCmd(lastId,dimTableName,brzTableName,tmspFld,lastUpdDt,joinCond,True)
+  updateCmd=getMergeSQLCmd(lastId,dimTableName,brzTableName,tmspFld,lastUpdDt,joinCond)
+  insertCmd=getInsertSQLCmd(lastId,dimTableName,brzTableName,tmspFld,lastUpdDt,joinCond)
+  return (insertCmd,updateCmd)
+
+  
+def readDimTables(tableArr):
+  for tableItem in tableArr:
+     sqlInsertStr,sqlUpdateStr=getDimResults(tableItem.TableName_SLV)
+     spark.sql(sqlUpdateStr)
+     spark.sql(sqlInsertStr) 
+     updateWatermarkData(tableItem.TableName_SLV) 
+#      print(sqlUpdateStr)
+#      print(sqlInsertStr)
+  return  
+
+def silverIngestions():
+  df=spark.sql("Select TableName_SLV FROM ETL.TableNames WHERE TableType='D'")
+  tbsArr=df.collect()
+  readDimTables(tbsArr)
+  return
+
+# COMMAND ----------
+
+# MAGIC %md ####Validation
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC truncate table BRONZE.ProductSubcategory;
+# MAGIC truncate table BRONZE.Productcategory;
+# MAGIC truncate table SILVER.DimProductSubcategory;
+# MAGIC truncate table SILVER.DimProductCategory;
+
+# COMMAND ----------
+
+bronzeIngestions()
+silverIngestions()
+
+# COMMAND ----------
+
+updateWatermarkData("DimProductSubcategory")
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC --select * from BRONZE.ProductSubcategory
+# MAGIC select * from ETL.TableNames
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC -- select * from SILVER.DimProductSubcategory;
+# MAGIC -- select * from SILVER.DimProductCategory
+# MAGIC -- INSERT INTO SILVER.DimProductSubcategory SELECT (ROW_NUMBER() OVER (ORDER BY S.ModifiedDate)+4) AS DimSurrKey,S.*,current_timestamp() as ValidFromDate,cast('9999-12-31' as timestamp) AS ValidToDate FROM BRONZE.ProductSubcategory AS S LEFT JOIN SILVER.DimProductSubcategory AS T ON  S.ProductSubcategoryID=T.ProductSubcategoryID where T.ModifiedDate IS NULL AND S.ModifiedDate>='2020-04-10 00:00:00';
+# MAGIC select * from SILVER.DimProductSubcategory;
+# MAGIC --select * from SILVER.DimProductcategory
+
+# COMMAND ----------
+
+sqlInsertStr,mrgStrMatch=getDimResults("DimProductSubcategory")
+print (mrgStrMatch)
+print(sqlInsertStr)
+
+# COMMAND ----------
+
+# getJoinConditions("DimProductSubcategory")
+# print(getWatermarkData("DimProductSubcategory"))
+# lastUpdDt,lastId=getWatermarkData("DimProductSubcategory")
+# print(lastUpdDt,lastId)
+getBronzeTableName("DimProductSubcategory")
+# getMatchSQLCmd(1,"DimProductSubcategory","ProductSubcategory","ModifiedDate","2020-01-01"," S.ProductSubcategoryID=T.ProductSubcategoryID",False)
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC -- update ETL.TableNames set LastId=100,WatermarkDate='1900-01-01'
+# MAGIC -- SELECT (ROW_NUMBER() OVER (ORDER BY S.ModifiedDate)+100) AS DimSurrKey,S.*,current_timestamp() as ValidFromDate,cast('9999-12-31' as timestamp) AS ValidToDate FROM BRONZE.ProductSubcategory AS S LEFT JOIN SILVER.DimProductSubcategory AS T ON  S.ProductSubcategoryID=T.ProductSubcategoryID where T.ModifiedDate is null and S.ModifiedDate>='1900-01-01 00:00:00'
+# MAGIC -- truncate table SILVER.DimProductSubcategory;
+# MAGIC -- INSERT INTO SILVER.DimProductSubcategory SELECT (ROW_NUMBER() OVER (ORDER BY S.ModifiedDate)+100) AS DimSurrKey,S.*,current_timestamp() as ValidFromDate,cast('9999-12-31' as timestamp) AS ValidToDate FROM BRONZE.ProductSubcategory AS S LEFT JOIN SILVER.DimProductSubcategory AS T ON  S.ProductSubcategoryID=T.ProductSubcategoryID where T.ModifiedDate IS NULL AND S.ModifiedDate>='1900-01-01 00:00:00';
+# MAGIC 
+# MAGIC MERGE INTO SILVER.DimProductSubcategory AS T USING BRONZE.ProductSubcategory AS S ON  S.ProductSubcategoryID=T.ProductSubcategoryID AND S.ModifiedDate>='1900-01-01 00:00:00'   WHEN MATCHED THEN UPDATE SET ValidToDate=current_timestamp();
+# MAGIC select * from SILVER.DimProductSubcategory
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC truncate table DimCustomer_RAW;
+# MAGIC truncate table DimCustomer;
+# MAGIC insert into DimCustomer  values ( monotonically_increasing_id(),1,100,'JOHN',null,cast('2020-04-10' as timestamp),cast('9999-12-31' as timestamp)),(monotonically_increasing_id(),2,100,'MIKE',null,cast('2020-04-10' as timestamp),cast('9999-12-31' as timestamp)),
+# MAGIC (monotonically_increasing_id(),3,300,'Maria',null,cast('2020-04-10' as timestamp),cast('9999-12-31' as timestamp)),(monotonically_increasing_id(),4,200,'Ann',null,cast('2020-04-10' as timestamp),cast('9999-12-31' as timestamp));
+# MAGIC insert into DimCustomer_RAW values (1,100,'John2','2020-01-01'),(2,200,'Mike2','2020-04-14'),(3,500,'Maria2','2020-04-14'),(7,100,'MEPI','2020-04-14'),(8,200,'CINISH','2020-04-14');;
+
+# COMMAND ----------
+
+# %sql
+# -- insert into table_fields values ('Customer','CustomerKey',true,null)
+# truncate table table_fields;
+# insert into table_fields values ('DimCustomer','CustomerKey',false,false),('DimCustomer','CustomerAlternateKey',true,false),('DimCustomer','GeographyKey',false,false),('DimCustomer','FirstName',false,false),('DimCustomer','DateUpdated',false,true);
+# select * from table_fields
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC -- insert into DimCustomer_RAW values (7,'1',100,'MEPI',null),(8,'1',200,'CINISH',null);
+# MAGIC 
+# MAGIC select * from DimCustomer_RAW
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC -- insert into DimCustomer_RAW values (7,'1',100,'MEPI',null),(8,'1',200,'CINISH',null);
+# MAGIC select * from DimCustomer;
+
+# COMMAND ----------
+
+noMatchStr,matchStr,updStrMatch=getDimResults('DimCustomer')
+dfM=spark.sql(matchStr)
+dfNM=spark.sql(noMatchStr)
+dfU=spark.sql(updStrMatch)
+dfNM.write.format("delta").mode("append").save('/mnt/delta/DimCustomer5/')
+dfM.write.format("delta").mode("append").save('/mnt/delta/DimCustomer5/')
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC select * from DimCustomer order by CustomerAlternateKey,ValidToDate;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC MERGE INTO DimCustomer AS T 
+# MAGIC USING DimCustomer_RAW AS S ON T.CustomerKey=S.CustomerKey
+# MAGIC WHEN MATCHED THEN
+# MAGIC UPDATE SET GeographyKey=S.GeographyKey,
+# MAGIC CustomerAlternateKey=S.CustomerAlternateKey,
+# MAGIC FirstName=S.FirstName;
+# MAGIC 
+# MAGIC select * from DimCustomer
+
+# COMMAND ----------
+
+display(df1)
+
+# COMMAND ----------
+
+display(df2)
+
+# COMMAND ----------
+
+def getDimResults(DimTableName):
+  joinCond=getJoinConditions(DimTableName)               #Get join conditions
+  tmspFld=getTimestampField(DimTableName)                #Get timestamp field name
+  lastUpdDt,lastId=getWatermarkData(DimTableName)        #Get watermark data    
+
+  sqlStrMatch=("SELECT monotonically_increasing_id() AS CustomerKey,S.*,current_timestamp() as ValidFromDate,cast('9999-12-31' as timestamp) AS ValidToDate FROM {0}_RAW AS S LEFT JOIN {0} AS T ON "+joinCond+" where T.{1} is not null and S.{4}>='{2}'").format(DimTableName,keyFieldName,lastUpdDt,lastId,tmspFld)
+  print (sqlStrMatch)
+#   dfM=spark.sql(sqlStrMatch)
+  
+  updStrMatch=("MERGE INTO {0} AS T USING {0}_RAW AS S ON "+joinCond+" AND S.{3}>='{2}'  WHEN MATCHED THEN UPDATE SET ValidToDate=current_timestamp() ").format(DimTableName,keyFieldName,lastUpdDt,tmspFld)
+  print (updStrMatch)
+#   dfM=spark.sql(updStrMatch)
+  
+#   sqlStrNoMatch=("SELECT (ROW_NUMBER() OVER (ORDER BY S.{1})+{2}) AS CustomerKey, S.*,current_timestamp() as ValidFromDate,cast('9999-12-31' as timestamp) AS ValidToDate  FROM {0}_RAW AS S LEFT JOIN {0} AS T ON "+joinCond+" where T.{1} is null").format(TableName,keyFieldName,lastId)
+  sqlStrNoMatch=("SELECT monotonically_increasing_id() AS CustomerKey, S.*,current_timestamp() as ValidFromDate,cast('9999-12-31' as timestamp) AS ValidToDate  FROM {0}_RAW AS S LEFT JOIN {0} AS T ON "+joinCond+" where T.{1} is null").format(DimTableName,keyFieldName,lastId)  
+#   dfNM=spark.sql(sqlStrNoMatch)
+  
+  return (sqlStrNoMatch,sqlStrMatch,updStrMatch)
+  
+
+# COMMAND ----------
+
+df2.write.format("delta").mode("append").save('/mnt/delta/DimCustomer4/')
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC select * from DimCustomer;
+
+# COMMAND ----------
+
+# MAGIC %sql select ROW_NUMBER() OVER (ORDER BY CustomerKey) AS rnum,*,current_timestamp() from DimCustomer_RAW
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT S.* FROM DimCustomer_RAW AS S LEFT JOIN DimCustomer AS T ON S.CustomerKey=T.CustomerKey WHERE T.CustomerKey IS  null
+
+# COMMAND ----------
+
+display(df2)
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC -- SELECT FieldName FROM table_fields WHERE TableName='DimCustomer' and KeyFlg=true
+# MAGIC SELECT WatermarkDate FROM table_names 
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC describe extended DimCustomer
+
+# COMMAND ----------
+
+TableNm="DimCustomer"
+sqlStr=f"select * from {TableNm}"
+sqlStr
+testDf=spark.sql(sqlStr)
+testDf.write.mode("OVERWRITE").saveAsTable("DimCustomer_Managed")
+display(testDf)
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC describe extended DimCustomer_Managed
+
+# COMMAND ----------
+
+fieldsDF=spark.sql('select * from table_fields')
+display(fieldsDF)
+
+# COMMAND ----------
+
+# print (fieldsDF)
+for row in fieldsDF.collect():
+  print(row.FieldName)
+
+# COMMAND ----------
+
