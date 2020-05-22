@@ -7,7 +7,8 @@ dbutils.fs.mount(source = "wasbs://mda@{0}.blob.core.windows.net".format(blobacc
 # COMMAND ----------
 
 from pyspark.sql.types import *
-# from pyspark.sql.types import datetime
+import pyspark.sql.functions as F
+from pyspark.sql.types import StructType
 
 # COMMAND ----------
 
@@ -76,9 +77,9 @@ from pyspark.sql.types import *
 # MAGIC USING CSV
 # MAGIC OPTIONS (header "true")
 # MAGIC LOCATION '/mnt/mda/source/Metadata/Metadata_Tables.csv';
-# MAGIC insert into ETL.TableNames
-# MAGIC   select TableName_GLD,TableName_SLV,TableName_BRZ,SourcePath,TableType,ChangeType,
-# MAGIC   CAST(WatermarkDate AS timestamp),LastId from ETL.TableNames_STG  WHERE TableName_BRZ is not null;
+# MAGIC INSERT INTO ETL.TableNames
+# MAGIC   SELECT TableName_GLD,TableName_SLV,TableName_BRZ,SourcePath,TableType,ChangeType,
+# MAGIC   CAST(WatermarkDate AS timestamp),LastId FROM ETL.TableNames_STG  WHERE TableName_BRZ is not null;
 # MAGIC select * from  ETL.TableNames
 
 # COMMAND ----------
@@ -150,6 +151,7 @@ def createDWHTables(SchemaName):
     print(row[TableColNm])
     spark.sql(dropBrzStr)
     spark.sql(createBrzStr)
+    
   return       
     
 
@@ -170,13 +172,16 @@ createDWHTables("SILVER")
 
 # COMMAND ----------
 
-def getFieldList(SchemaName,TableName,includeForeignKeyFlg=False):
+def getFieldList(SchemaName,TableName,includeForeignKeyFlg=False,tableAlias=""):
   if includeForeignKeyFlg ==False:
     fkCondition="IsForeignKeyFlg=false"
   else:
     fkCondition="1=1"
   sqlKeys="SELECT ColumnName FROM ETL.TableFields WHERE SchemaName='{0}' AND TableName='{1}' AND {2} ORDER BY ColumnOrder".format(SchemaName,TableName,fkCondition)
-  return spark.sql(sqlKeys).collect()
+  rdd=spark.sql(sqlKeys).rdd.map(lambda x:','+tableAlias+x['ColumnName'])
+  colLstStr=rdd.reduce(lambda x,y:x+y).replace(",","",1)
+  return colLstStr
+# spark.sql(sqlKeys).collect()
 
 def ingestBronzeTables(truncateFirstFlg):
   df=spark.sql("Select TableName_BRZ,SourcePath from ETL.TableNames")
@@ -185,15 +190,15 @@ def ingestBronzeTables(truncateFirstFlg):
       sourcePath="{0}{1}.csv".format(tableItem.SourcePath,tableItem.TableName_BRZ)
       df=spark.read.csv(sourcePath,header=True)
       df.createOrReplaceTempView("TempSource")
-      fldList=getFieldList("BRONZE",tableItem.TableName_BRZ)
-      fldLstStr=""
-      fldNum=0
-      for fld in fldList:
-         if fldNum > 0:
-            fldLstStr+=",{0}".format(fld["ColumnName"])
-         else:
-            fldLstStr+="{0}".format(fld["ColumnName"])
-         fldNum+=1   
+      fldLstStr=getFieldList("BRONZE",tableItem.TableName_BRZ,False,"")
+#       fldLstStr=""
+#       fldNum=0
+#       for fld in fldList:
+#          if fldNum > 0:
+#             fldLstStr+=",{0}".format(fld["ColumnName"])
+#          else:
+#             fldLstStr+="{0}".format(fld["ColumnName"])
+#          fldNum+=1   
       sqlStr="INSERT INTO BRONZE.{0} SELECT {1} FROM TempSource".format(tableItem.TableName_BRZ,fldLstStr)
       print(tableItem.TableName_BRZ)
       print (sqlStr)
@@ -204,11 +209,12 @@ def ingestBronzeTables(truncateFirstFlg):
   return  
 
 
+
 # COMMAND ----------
 
 ingestBronzeTables(True)
 # readBronzeTables("SalesLTProduct")
-# getFieldList("BRONZE","SalesLTProduct")
+# getFieldList("BRONZE","SalesLTProduct",True,"")
 
 
 # COMMAND ----------
@@ -223,6 +229,15 @@ ingestBronzeTables(True)
 # COMMAND ----------
 
 # MAGIC %md ####SILVER level ingestions
+
+# COMMAND ----------
+
+tableAlias="S"
+sqlKeys="SELECT ColumnName FROM ETL.TableFields WHERE SchemaName='{0}' AND TableName='{1}'  ORDER BY ColumnOrder".format("BRONZE","SalesLTProduct","")
+sqlKeys
+rdd=spark.sql(sqlKeys).rdd.map(lambda x:','+tableAlias+'.' if len(tableAlias)>0 x['ColumnName'])
+colLstStr=rdd.reduce(lambda x,y:x+y).replace(",","",1)
+colLstStr
 
 # COMMAND ----------
 
@@ -315,39 +330,55 @@ def silverIngestions(truncateFirstFlg):
   readDimTables(tbsArr,truncateFirstFlg)
   return
 
+fkStructType=StructType([StructField("primFieldName",StringType(),True),
+                     StructField("fnKeyTableName",StringType(),True),
+                     StructField("fnSurrKey",StringType(),True),
+                     StructField("fnBussKeyName",StringType(),True)])
+
+
 def getForeignSurrKeyMetadata(TableName):
   sqlKeys="SELECT ColumnName,ForeignKeyTableName FROM ETL.TableFields WHERE TableName='{0}' and IsForeignKeyFlg=true".format(TableName)
-  primFieldName,foreignKeyTableName=spark.sql(sqlKeys).first()
-#   print (ColumnName,foreignKeyTableName)
-  sqlKeys="SELECT ColumnName FROM ETL.TableFields WHERE TableName='{0}' and IsSurrogateKeyFlg=true".format(foreignKeyTableName)
-  foreignSurrKeyRows=spark.sql(sqlKeys).collect()
-  for row in foreignSurrKeyRows:
-    colNm=row['ColumnName']
-    sqlKeys="SELECT ColumnName FROM ETL.TableFields WHERE TableName='{0}' and IsBusinessKeyFlg=true".format(foreignKeyTableName)
-    foreignBussKeyName=spark.sql(sqlKeys).first().ColumnName
-  return (primFieldName,foreignKeyTableName,foreignSurrKeyName,foreignBussKeyName)
+  fkKeySets =spark.sql(sqlKeys).collect()
+  fkArr=[]
+  for fk in fkKeySets:
+    fkRow=fkStructType
+    fkRow.primFieldName,fkRow.fnKeyTableName=fk
+    sqlKeys="SELECT ColumnName FROM ETL.TableFields WHERE TableName='{0}' and IsSurrogateKeyFlg=true".format(fkRow.fnKeyTableName)
+    fkRow.fnSurrKey=spark.sql(sqlKeys).first()['ColumnName']
+    sqlKeys="SELECT ColumnName FROM ETL.TableFields WHERE TableName='{0}' and IsBusinessKeyFlg=true".format(fkRow.fnKeyTableName)
+    fkRow.fnBussKeyName=spark.sql(sqlKeys).first()['ColumnName']
+    print(fkRow.primFieldName,fkRow.fnKeyTableName,fkRow.fnSurrKey,fkRow.fnBussKeyName)
+    fkArr.append(fkRow)
+  return fkArr
 
 
 def getForeignSurrKeyDF(tableName): #,primFieldName,foreignKeyTableName,foreignSurrKeyName):
-  primFieldName,fnKeyTableName,fnSurrKeyName,fnBussKeyName=getForeignSurrKeyMetadata(tableName)
-  fldList =getFieldList(tableName)
-  sqlCmd="SELECT "
-  for fld in fldList:
-     sqlCmd+="S.{0},".format(fld["ColumnName"])
-  sqlCmd+="T.{0} FROM SILVER.{1} AS S JOIN SILVER.{2} AS T ON S.{3}=T.{4}".format(fnSurrKeyName,tableName,fnKeyTableName,primFieldName,fnBussKeyName)
-  print (sqlCmd)
-  return (sqlCmd)
+#   primFieldName,fnKeyTableName,fnSurrKeyName,fnBussKeyName
+  
+  fldListStr =getFieldList('SILVER',tableName,True,"S.")
+  fnKeysArr=getForeignSurrKeyMetadata(tableName)
+  fnSurrKeyLst=""
+  for fnSet in fnKeysArr:
+    fnSurrKeyLst+=",{0}.{1}".format(fnSet.fnKeyTableName,fnSet.fnSurrKey)
+  
+#   sqlCmd="SELECT {5} {0} FROM SILVER.{1} AS S JOIN SILVER.{2} AS T ON S.{3}=T.{4}".format(fnSurrKeyLst,tableName,fnKeyTableName,primFieldName,fnBussKeyName,fldListStr)
+#   sqlCmd=""
+#   for fld in fldList:
+#      sqlCmd+="S.{0},".format(fld["ColumnName"])
+#   sqlCmd="SELECT  {5} FROM SILVER.{1} AS S JOIN SILVER.{2} AS T ON S.{3}=T.{4}".format(fnSurrKeyName,tableName,fnKeyTableName,primFieldName,fnBussKeyName,fldListStr)
+  print (fnSurrKeyLst)
+  return #(sqlCmd)
 
 def getInsertSQLCmd(lastId,dimTableName,brzTableName,tmspFld,lastUpdDt,joinCond):
-  fldList=getFieldList("SILVER",dimTableName,True)
-  fldLstStr=""
-  fldNum=0
-  for fld in fldList:
-     if fldNum > 0:
-        fldLstStr+=",{0}".format(fld["ColumnName"])
-     else:
-        fldLstStr+="{0}".format(fld["ColumnName"])
-     fldNum+=1   
+  fldLstStr=getFieldList("SILVER",dimTableName,True,"")
+#   fldLstStr=""
+#   fldNum=0
+#   for fld in fldList:
+#      if fldNum > 0:
+#         fldLstStr+=",{0}".format(fld["ColumnName"])
+#      else:
+#         fldLstStr+="{0}".format(fld["ColumnName"])
+#      fldNum+=1   
   surrKeyName=getSurrKeyField(dimTableName) 
   return (("INSERT INTO SILVER.{1} SELECT {6} FROM (SELECT (ROW_NUMBER() OVER (ORDER BY S.{3})+{0}) AS {7},S.*,current_timestamp() as ValidFromDate,cast('9999-12-31' as timestamp) AS ValidToDate\
  FROM BRONZE.{2} AS S LEFT JOIN SILVER.{1} AS T ON {5} where T.{3} IS NULL AND S.{3}>='{4}')").format(lastId,dimTableName,brzTableName,tmspFld,lastUpdDt,joinCond,fldLstStr,surrKeyName))
@@ -355,10 +386,15 @@ def getInsertSQLCmd(lastId,dimTableName,brzTableName,tmspFld,lastUpdDt,joinCond)
 
 # COMMAND ----------
 
-silverIngestions(True)
-# getJoinConditions("DimCustomerAddress")
-# getWatermarkData("DimCustomerAddress")
-# getInsertSQLCmd(0,"DimAddress","SalesLTAddress","ModifiedDate","1900-01-01","S.AddressID=T.AddressID")
+# sqlCmd=getForeignSurrKeyDF("DimCustomerAddress")
+# df=spark.sql(sqlCmd)
+# display(df)
+fk=getForeignSurrKeyMetadata("DimCustomerAddress")
+
+# COMMAND ----------
+
+print(fk[0].fnKeyTableName,fk[0].fnSurrKey)
+print(fk[1].fnKeyTableName,fk[1].fnSurrKey)
 
 # COMMAND ----------
 
@@ -368,7 +404,22 @@ silverIngestions(True)
 
 # COMMAND ----------
 
+# silverIngestions(True)
+# getJoinConditions("DimCustomerAddress")
+# getWatermarkData("DimCustomerAddress")
+getInsertSQLCmd(0,"DimAddress","SalesLTAddress","ModifiedDate","1900-01-01","S.AddressID=T.AddressID")
+
+# COMMAND ----------
+
 # MAGIC %md ####Validation
+
+# COMMAND ----------
+
+dfRdd=spark.sql("SELECT ColumnName FROM ETL.TableFields WHERE SchemaName='{0}' AND TableName='{1}' ORDER BY ColumnOrder".format("SILVER","DimProduct"))
+rdd=dfRdd.rdd.map(lambda x:','+x['ColumnName'])
+colLstStr=rdd.reduce(lambda x,y:x+y).replace(",","",1)
+print (colLstStr)
+
 
 # COMMAND ----------
 
@@ -385,14 +436,19 @@ silverIngestions(True)
 
 # COMMAND ----------
 
-sqlCmd=getForeignSurrKeyDF("DimProductSubcategory")
-df=spark.sql(sqlCmd)
-display(df)
+fldList=['A','B','C']
+rdd2=sc.parallelize(fldList)
+red2=rdd2.reduce(lambda x,y:F.concat(x,y))
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC SELECT S.ProductSubcategoryID,S.ProductCategoryID,S.ProductSubcategoryKey,S.rowguid,S.ModifiedDate,S.Name,T.ProductCategoryKey FROM SILVER.DimProductSubcategory AS S JOIN SILVER.DimProductCategory AS T ON S.ProductCategoryID=T.ProductCategoryID
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT ColumnName,ForeignKeyTableName FROM ETL.TableFields WHERE TableName='DimAddress' and IsForeignKeyFlg=true
 
 # COMMAND ----------
 
