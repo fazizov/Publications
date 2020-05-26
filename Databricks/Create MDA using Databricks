@@ -123,14 +123,16 @@ def generateCreateStr(tableNm,tableSchema):
      dropCmdStr="DROP TABLE IF EXISTS {1}.{0}".format(tableNm,tableSchema) 
      createCmdStr="CREATE TABLE {1}.{0} ( ".format(tableNm,tableSchema)
      dfCols=spark.sql("SELECT ColumnName,ColumnType FROM ETL.TableFields WHERE TableName='{0}' ORDER BY ColumnOrder".format(tableNm))
-     colsArr=dfCols.collect()
-     colInd=0 
-     for col in colsArr:
-        if colInd==0:
-          createCmdStr+="{0} {1} ".format(col.ColumnName,col.ColumnType)
-        else:
-           createCmdStr+=",{0} {1} ".format(col.ColumnName,col.ColumnType)
-        colInd+=1
+     rdd=dfCols.rdd.map(lambda x:','+x['ColumnName']+'  '+x['ColumnType'])
+     createCmdStr=rdd.reduce(lambda x,y:x+y).replace(",","",1)
+#      colsArr=dfCols.collect()
+#      colInd=0 
+#      for col in colsArr:
+#         if colInd==0:
+#           createCmdStr+="{0} {1} ".format(col.ColumnName,col.ColumnType)
+#         else:
+#            createCmdStr+=",{0} {1} ".format(col.ColumnName,col.ColumnType)
+#         colInd+=1
      createCmdStr+=") USING DELTA "
      return (dropCmdStr,createCmdStr)
 
@@ -240,15 +242,15 @@ def updateETLLogs(schemaName,tableName):
 #   print (sqlCmd)
   df=spark.sql(sqlCmd)
   row=df.orderBy(df.version, ascending=False).selectExpr("operation","operationParameters.mode As UpdateMode","operationMetrics.numOutputRows As TotalRows",\
-     "operationMetrics.numUpdatedRows As UpdatedRows","timestamp").first()
+     "operationMetrics.numUpdatedRows As UpdatedRows","operationMetrics.numTargetRowsUpdated As MergedRows","timestamp").first()
+  insCnt=0
+  updCnt=0
   if row["operation"]=="UPDATE":
     updCnt=row["UpdatedRows"]
-  else:
-    updCnt=0
-  if row["operation"]=="WRITE":
+  elif row["operation"]=="MERGE":
+    updCnt=row["MergedRows"]
+  elif row["operation"]=="WRITE":
     insCnt=row["TotalRows"]
-  else:
-    insCnt=0
   insertCmd="INSERT INTO ETL.Logs VALUES ('{0}','{1}','{2}',{3},{4},CAST('{5}' as timestamp))".format(schemaName,tableName,row["operation"],insCnt,updCnt,row["timestamp"])
   spark.sql(insertCmd)
   return
@@ -352,8 +354,9 @@ def ingestDimTables(tableArr,truncateFirstFlg):
         spark.sql("TRUNCATE TABLE SILVER.{0}".format(tableItem.TableName_SLV))
      else:   
         spark.sql(sqlUpdateStr)
+        print(sqlUpdateStr)
         updateETLLogs("SILVER",tableItem.TableName_SLV) 
-     print(sqlInsertStr) 
+#      print(sqlInsertStr) 
 #     print("Ingesting into table {0} is complete".format(tableItem.TableName_SLV))
      spark.sql(sqlInsertStr)
      updateETLLogs("SILVER",tableItem.TableName_SLV) 
@@ -464,8 +467,9 @@ def getDimResults_Old(DimTableName):
 
 # COMMAND ----------
 
-# %sql
-# select * from etl.logs order by schemaName,tableName
+# MAGIC %sql
+# MAGIC select * from etl.logs where tableName='DimCustomer' order by updatedatetime desc
+# MAGIC --order by schemaName,tableName
 
 # COMMAND ----------
 
