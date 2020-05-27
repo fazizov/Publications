@@ -46,6 +46,7 @@ def createMetaTables():
   IsBusinessKeyFlg boolean,\
   IsTimestampFlg boolean,\
   IsForeignKeyFlg boolean,\
+  IsPartitionKeyFlg boolean,\
   ForeignKeyTableName string)\
   USING DELTA"
   spark.sql(sqlStr)
@@ -103,6 +104,7 @@ def populateTableFields():
   IsBusinessKeyFlg int,\
   IsTimestampFlg int,\
   IsForeignKeyFlg int,\
+  IsPartitionKeyFlg int,\
   ForeignKeyTableName string\
   )\
   USING CSV\
@@ -110,7 +112,7 @@ def populateTableFields():
   LOCATION '/mnt/mda/source/Metadata/Metadata_Columns.csv'"
   spark.sql(sqlStr)           
   spark.sql("insert into ETL.TableFields  select SchemaName,TableName,ColumnName,ParentColumnName,ColumnOrder,ColumnType,IsSurrogateKeyFlg,IsBusinessKeyFlg,IsTimestampFlg,\
-     IsForeignKeyFlg ,ForeignKeyTableName from ETL.TableFields_STG WHERE TableName is not null ORDER BY TableName,ColumnOrder")
+     IsForeignKeyFlg,IsPartitionKeyFlg,ForeignKeyTableName from ETL.TableFields_STG WHERE TableName is not null ORDER BY TableName,ColumnOrder")
   return
 
 # COMMAND ----------
@@ -119,22 +121,17 @@ def populateTableFields():
 
 # COMMAND ----------
 
-def generateCreateStr(tableNm,tableSchema):
-     dropCmdStr="DROP TABLE IF EXISTS {1}.{0}".format(tableNm,tableSchema) 
-     createCmdStr="CREATE TABLE {1}.{0} ( ".format(tableNm,tableSchema)
-     dfCols=spark.sql("SELECT ColumnName,ColumnType FROM ETL.TableFields WHERE TableName='{0}' ORDER BY ColumnOrder".format(tableNm))
-     rdd=dfCols.rdd.map(lambda x:','+x['ColumnName']+'  '+x['ColumnType'])
-     createCmdStr=rdd.reduce(lambda x,y:x+y).replace(",","",1)
-#      colsArr=dfCols.collect()
-#      colInd=0 
-#      for col in colsArr:
-#         if colInd==0:
-#           createCmdStr+="{0} {1} ".format(col.ColumnName,col.ColumnType)
-#         else:
-#            createCmdStr+=",{0} {1} ".format(col.ColumnName,col.ColumnType)
-#         colInd+=1
-     createCmdStr+=") USING DELTA "
-     return (dropCmdStr,createCmdStr)
+def generateCreateStr(tableName,tableSchema):
+   partitionKey=getKeyFieldName(tableName,"IsPartitionKeyFlg")
+   dropCmdStr="DROP TABLE IF EXISTS {1}.{0}".format(tableName,tableSchema) 
+   createCmdStr="CREATE TABLE {1}.{0} ( ".format(tableName,tableSchema)
+   dfCols=spark.sql("SELECT ColumnName,ColumnType FROM ETL.TableFields WHERE TableName='{0}' ORDER BY ColumnOrder".format(tableName))
+   rdd=dfCols.rdd.map(lambda x:','+x['ColumnName']+'  '+x['ColumnType'])
+   createCmdStr+=rdd.reduce(lambda x,y:x+y).replace(",","",1)
+   createCmdStr+=") USING DELTA "
+   if partitionKey is not None:
+     createCmdStr+=" PARTITIONED BY ({0})".format(partitionKey)
+   return (dropCmdStr,createCmdStr)
 
 def createDWHTables(SchemaName):
   if SchemaName=="BRONZE":
@@ -145,9 +142,10 @@ def createDWHTables(SchemaName):
   tabLst=dfTabs.collect()
   for row in tabLst:
     dropBrzStr,createBrzStr=generateCreateStr(row[TableColNm],SchemaName)
-    print(row[TableColNm])
+#     print (createBrzStr)
     spark.sql(dropBrzStr)
     spark.sql(createBrzStr)
+    print("Table {} has been created".format(row[TableColNm]))
   return        
 
 # COMMAND ----------
@@ -182,7 +180,6 @@ def getKeyFieldName(tableName,keyType):
     sqlKeys="SELECT ColumnName FROM ETL.TableFields WHERE TableName='{0}' and {1}=true".format(tableName,keyType)
     return spark.sql(sqlKeys).first()['ColumnName']
 
-  
 def getFieldList(SchemaName,TableName,includeForeignKeyFlg=False,tableAlias="",replaceForeignKeys=False):
   if includeForeignKeyFlg ==False:
     fkCondition="IsForeignKeyFlg=false"
@@ -295,7 +292,6 @@ def ingestBronzeTables(truncateFirstFlg):
 #  FROM BRONZE.{2} AS S LEFT JOIN SILVER.{1} AS T ON {5} where T.{3} is {6} and S.{3}>='{4}'").format(lastId,dimTableName,brzTableName,tmspFld,lastUpdDt,joinCond,matchCond))
 
 
-  
 
 
 # fkStructType=StructType([StructField("primFieldName",StringType(),True),
@@ -325,19 +321,19 @@ def getKeyFieldsList(schemaName,tableName,keyType):
     return colLstStr
 
 def getFnSkList(schemaName,tableName):
-    fnKeysArr=getForeignSurrKeyMetadata("SILVER",tableName)
+    fnKeysArr=getFnSurrKeyMetadata("SILVER",tableName)
     fnSurrKeyLst=""
     if len(fnKeysArr)>0:
-      
       for fnSet in fnKeysArr:
         fnSurrKeyLst+=(','+fnSet[2])
     return fnSurrKeyLst
   
-def getForeignSurrKeyMetadata(schemaName,tableName):
+def getFnSurrKeyMetadata(schemaName,tableName):
   sqlKeys="SELECT ColumnName,ParentColumnName,ForeignKeyTableName FROM ETL.TableFields WHERE SchemaName='{1}' AND TableName='{0}' and IsForeignKeyFlg=true".format(tableName,schemaName)
 #   fkKeyArr =getKeyFieldsArr(schemaName,tableName,"IsForeignKeyFlg")
   fkKeyArr =spark.sql(sqlKeys).collect()
   fkArr=[]
+  fnSurrKeyLst=""
   for fk in fkKeyArr:
     primFieldName,primFieldNameRef,fnKeyTableName=fk
     fnSurrKey=getKeyFieldName(fnKeyTableName,"IsSurrogateKeyFlg") 
@@ -360,14 +356,13 @@ def ingestDimTables(tableArr,truncateFirstFlg):
 #     print("Ingesting into table {0} is complete".format(tableItem.TableName_SLV))
      spark.sql(sqlInsertStr)
      updateETLLogs("SILVER",tableItem.TableName_SLV) 
+     updateWatermarkData(tableItem.TableName_SLV,'D') 
 #      print(sqlUpdateStr)
   return  
-
 
 def getDimMergeCmd(lastId,tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,joinCond):
   return (("MERGE INTO SILVER.{0} AS T USING BRONZE.{1} AS S ON {4} AND S.{3}>='{2}' \
   WHEN MATCHED THEN UPDATE SET ValidToDate=current_timestamp()").format(tableName_SLV,tableName_BRZ,lastUpdDt,tmspFld,joinCond))
-
 
 def getUpdInsCmds(tableName_SLV,tableType):
   tableName_BRZ=getBronzeTableName(tableName_SLV)          #Get BRONZE table name   
@@ -384,7 +379,6 @@ def getUpdInsCmds(tableName_SLV,tableType):
     fldLstStr =getFieldList("SILVER",tableName_SLV,True,"S.",True)
     updateCmd=getFactMergeCmd(tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,sourceTargetJoinCond)
     insertCmd=getFactInsertCmd(tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,sourceTargetJoinCond,fldLstStr)
-  updateWatermarkData(tableName_SLV,tableType) 
   return (insertCmd,updateCmd)
 
 def getFactMergeCmd(tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,joinCond):
@@ -408,7 +402,7 @@ def getFactInsertCmd(tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,sourceTargetJ
     fnSurrKeyLst=""
     joinStr=""
     aliasNum=1
-    fnKeysArr=getForeignSurrKeyMetadata("SILVER",tableName_SLV)
+    fnKeysArr=getFnSurrKeyMetadata("SILVER",tableName_SLV)
     for fnSet in fnKeysArr:
       joinStr+= " LEFT JOIN SILVER.{1} AS D{4} ON S.{3}=D{4}.{2} AND D{4}.ValidToDate=CAST('9999-12-31' as timestamp)".format(fnSet[0],fnSet[1],fnSet[3],fnSet[4],aliasNum)
       aliasNum+=1
@@ -420,7 +414,6 @@ def getFactInsertCmd(tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,sourceTargetJ
 def ingestFactTables(tableArr,truncateFirstFlg):
   for tableItem in tableArr:
      sqlInsertStr,sqlUpdateStr=getUpdInsCmds(tableItem.TableName_SLV,'F')
-#      sqlInsertStr,sqlUpdateStr=getFactInsertCmd("SILVER",tableItem.TableName_SLV)
      if truncateFirstFlg ==True:
         spark.sql("TRUNCATE TABLE SILVER.{0}".format(tableItem.TableName_SLV))
      else:   
@@ -429,7 +422,8 @@ def ingestFactTables(tableArr,truncateFirstFlg):
      print(sqlUpdateStr) 
      print(sqlInsertStr) 
      spark.sql(sqlInsertStr) 
-     updateETLLogs("SILVER",tableItem.TableName_SLV) 
+     updateETLLogs("SILVER",tableItem.TableName_SLV)
+     updateWatermarkData(tableItem.TableName_SLV,'F')  
 #      print(sqlUpdateStr)
   return  
 
@@ -468,8 +462,15 @@ def getDimResults_Old(DimTableName):
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from etl.logs where tableName='DimCustomer' order by updatedatetime desc
+# MAGIC -- select * from etl.logs where tableName='DimCustomer' order by updatedatetime desc
 # MAGIC --order by schemaName,tableName
+
+# COMMAND ----------
+
+# df=spark.table("BRONZE.SalesLTProductDescription")
+# # df.rdd.partitions.size
+# # df.show()
+# df.rdd.getNumPartitions()
 
 # COMMAND ----------
 
