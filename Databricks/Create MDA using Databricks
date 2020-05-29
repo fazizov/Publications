@@ -39,7 +39,10 @@ def createMetaTables():
   SchemaName string,\
   TableName string,\
   ColumnName string,\
+  SourceSchemaName string,\
+  SourceTableName string,\
   SourceColumnName string,\
+  LookupColumnName string,\
   ColumnOrder int,\
   ColumnType string,\
   IsSurrogateKeyFlg boolean,\
@@ -98,6 +101,7 @@ def populateTableNames():
   spark.sql(sqlStr)      
   spark.sql("INSERT INTO ETL.TableNames SELECT TableName_GLD,TableName_SLV,TableName_BRZ,SourcePath,TableType,ChgHstTrackingType,\
     CAST(WatermarkDate AS timestamp),LastId FROM ETL.TableNames_STG  WHERE TableName_BRZ is not null")
+  print ("Table names metedata has been populated")
   return
 
 def populateTableFields():
@@ -107,7 +111,10 @@ def populateTableFields():
   SchemaName string,\
   TableName string,\
   ColumnName string,\
+  SourceSchemaName string,\
+  SourceTableName string,\
   SourceColumnName string,\
+  LookupColumnName string,\
   ColumnOrder int,\
   ColumnType string,\
   IsSurrogateKeyFlg int,\
@@ -122,8 +129,9 @@ def populateTableFields():
   OPTIONS (header 'true')\
   LOCATION '/mnt/mda/source/Metadata/Metadata_Columns.csv'"
   spark.sql(sqlStr)           
-  spark.sql("insert into ETL.TableFields  select SchemaName,TableName,ColumnName,SourceColumnName,ColumnOrder,ColumnType,IsSurrogateKeyFlg,IsBusinessKeyFlg,IsTimestampFlg,\
-    IsForeignKeyFlg,IsPartitionKeyFlg,IsSCDFlg,ForeignKeyTableName from ETL.TableFields_STG WHERE TableName is not null ORDER BY TableName,ColumnOrder")
+  spark.sql("INSERT INTO ETL.TableFields  SELECT SchemaName,TableName,ColumnName,SourceSchemaName,SourceTableName,SourceColumnName,LookupColumnName,ColumnOrder,ColumnType,IsSurrogateKeyFlg,IsBusinessKeyFlg,IsTimestampFlg,\
+    IsForeignKeyFlg,IsPartitionKeyFlg,IsSCDFlg,ForeignKeyTableName FROM ETL.TableFields_STG WHERE TableName IS NOT NULL ORDER BY TableName,ColumnOrder")
+  print ("Column names metedata has been populated")
   return
 
 # COMMAND ----------
@@ -134,14 +142,18 @@ def populateTableFields():
 
 def generateCreateStr(tableName,tableSchema):
    partitionKey=getKeyFieldName(tableName,"IsPartitionKeyFlg")
+#    print (tableName,tableSchema) 
    dropCmdStr="DROP TABLE IF EXISTS {1}.{0}".format(tableName,tableSchema) 
    createCmdStr="CREATE TABLE {1}.{0} ( ".format(tableName,tableSchema)
    dfCols=spark.sql("SELECT ColumnName,ColumnType FROM ETL.TableFields WHERE TableName='{0}' ORDER BY ColumnOrder".format(tableName))
-   rdd=dfCols.rdd.map(lambda x:','+x['ColumnName']+'  '+x['ColumnType'])
-   createCmdStr+=rdd.reduce(lambda x,y:x+y).replace(",","",1)
-   createCmdStr+=") USING DELTA "
-   if partitionKey is not None:
-     createCmdStr+=" PARTITIONED BY ({0})".format(partitionKey)
+   if dfCols.count()>0:
+     rdd=dfCols.rdd.map(lambda x:','+x['ColumnName']+'  '+x['ColumnType'])
+     createCmdStr+=rdd.reduce(lambda x,y:x+y).replace(",","",1)
+     createCmdStr+=") USING DELTA "
+     if partitionKey is not None:
+       createCmdStr+=" PARTITIONED BY ({0})".format(partitionKey)
+   else:
+      createCmdStr=""
    return (dropCmdStr,createCmdStr)
 
 def createDWHTables(SchemaName):
@@ -149,15 +161,20 @@ def createDWHTables(SchemaName):
     TableColNm="TableName_BRZ"
   else:
     TableColNm="TableName_SLV"
-  dfTabs=spark.sql("SELECT {0} FROM ETL.TableNames".format(TableColNm))
+  dfTabs=spark.sql("SELECT {0} FROM ETL.TableNames WHERE {0} IS NOT NULL".format(TableColNm))
   tabLst=dfTabs.collect()
   for row in tabLst:
+#     print ("Table {0}".format(row[TableColNm]))
     dropBrzStr,createBrzStr=generateCreateStr(row[TableColNm],SchemaName)
 #     print (createBrzStr)
     spark.sql(dropBrzStr)
     spark.sql(createBrzStr)
     print("Table {} has been created".format(row[TableColNm]))
   return        
+
+# COMMAND ----------
+
+# createDWHTables("SILVER")
 
 # COMMAND ----------
 
@@ -196,12 +213,57 @@ def getKeyFieldName(tableName,keyType):
       keyFieldName=None
     return keyFieldName
 
+def getFieldListNew(SchemaName,TableName,tableAlias="",targetColumnsOnlyFlg=True):
+  sqlCols="SELECT ColumnName,SourceColumnName,SourceTableName,LookupColumnName FROM ETL.TableFields WHERE SchemaName='{0}' AND TableName='{1}' ORDER BY ColumnOrder".format(SchemaName,TableName)
+  colList=spark.sql(sqlCols).collect()
+  colLstStr=""
+  aliasNum=1
+  for row in colList:
+    if targetColumnsOnlyFlg==True:
+      colLstStr+=",{0}{1}".format(tableAlias,row['ColumnName'])
+    else:
+      if row['SourceColumnName'] is not None:
+#         colLstStr+=",{0}{1}".format(tableAlias,row['ColumnName'])
+#       else:
+        if row['LookupColumnName'] is not None:
+          colLstStr+=",LKP{0}.{1} AS {2}".format(aliasNum,row['SourceColumnName'],row['ColumnName'])
+          aliasNum+=1
+        else:  
+          colLstStr+=",{0}{1} AS {2}".format(tableAlias,row['SourceColumnName'],row['ColumnName'])
+  colLstStr=colLstStr.replace(",","",1)
+  return colLstStr
+
+def getJoinConditions(schemaName,tableName,sourceAlias,targetAlias):
+  sqlCmd="SELECT ColumnName,SourceColumnName FROM ETL.TableFields WHERE SchemaName='{0}' AND TableName='{1}' and IsBusinessKeyFlg=true".format(schemaName,tableName)
+  df=spark.sql(sqlCmd)
+  joinCond=''
+  if df.count()>0:
+    rddMap=df.rdd.map(lambda x:" AND {0}.{1}={2}.{3} ".format(sourceAlias,x['SourceColumnName'],targetAlias,x['ColumnName']))
+    joinCond=rddMap.reduce(lambda x,y:x+y).replace("AND","",1)  
+  return joinCond
+
+
+def getLkpJoinList(SchemaName,TableName):
+  sqlCols="SELECT ColumnName,SourceSchemaName,SourceTableName,SourceColumnName,LookupColumnName FROM ETL.TableFields WHERE SchemaName='{0}' AND TableName='{1}' \
+   AND LookupColumnName IS NOT NULL ORDER BY ColumnOrder".format(SchemaName,TableName)
+  colList=spark.sql(sqlCols).collect()
+  aliasNum=1
+  joinStr= ""
+  for row in colList:
+    lkpAlias="LKP{0}".format(aliasNum)
+    lkpBusinessKeyField=getKeyFieldName(row['SourceTableName'],"IsBusinessKeyFlg")
+#     print (row['SourceSchemaName'])
+    joinStr+= " LEFT JOIN {0}.{1} AS {2} ON S.{3}={2}.{4} ".format(row['SourceSchemaName'],row['SourceTableName'],lkpAlias,row['LookupColumnName'],lkpBusinessKeyField)
+    aliasNum+=1
+  return joinStr
+
+
 def getFieldList(SchemaName,TableName,includeForeignKeyFlg=False,tableAlias="",replaceForeignKeys=False):
   if includeForeignKeyFlg ==False:
     fkCondition="IsForeignKeyFlg=false"
   else:
     fkCondition="1=1"
-  sqlKeys="SELECT ColumnName FROM ETL.TableFields WHERE SchemaName='{0}' AND TableName='{1}' AND {2} ORDER BY ColumnOrder".format(SchemaName,TableName,fkCondition)
+  sqlKeys="SELECT ColumnName,SourceColumnName,SourceTableName,LookupColumnName FROM ETL.TableFields WHERE SchemaName='{0}' AND TableName='{1}' AND {2} ORDER BY ColumnOrder".format(SchemaName,TableName,fkCondition)
   rdd=spark.sql(sqlKeys).rdd.map(lambda x:','+tableAlias+x['ColumnName'])
   colLstStr=rdd.reduce(lambda x,y:x+y).replace(",","",1)
   joinAliasNum=1
@@ -218,7 +280,7 @@ def getFieldList(SchemaName,TableName,includeForeignKeyFlg=False,tableAlias="",r
       joinAliasNum+=1
 #   print(colLstStr)   
   return colLstStr
- 
+
 def getBronzeTableName(tableName):
   sqlStrWtrm=("SELECT TableName_BRZ FROM ETL.TableNames where TableName_SLV='{0}'").format(tableName)
   dfWM=spark.sql(sqlStrWtrm)
@@ -228,9 +290,18 @@ def getRowCounts():
   sqlCmd="SELECT TableName_BRZ,TableName_SLV FROM ETL.TableNames "
   dfRows=spark.sql(sqlCmd).collect()
   for row in dfRows:
-    rowCnt_BRZ=spark.table("BRONZE.{0}".format(row['TableName_BRZ'])).count()
-    rowCnt_SLV=spark.table("SILVER.{0}".format(row['TableName_SLV'])).count()
-    print ("Row counts- BRONZE.{0}:{1}, SILVER.{2}:{3}".format(row['TableName_BRZ'],rowCnt_BRZ,row['TableName_SLV'],rowCnt_SLV))                       
+    if row['TableName_BRZ'] is not None:
+      rowCnt_BRZ=spark.table("BRONZE.{0}".format(row['TableName_BRZ'])).count()
+#       print ("BRONZE.{0}:{1}".format(row['TableName_BRZ'],rowCnt_BRZ))
+    else:
+      rowCnt_BRZ=-1  
+    if row['TableName_SLV'] is not None:
+      rowCnt_SLV=spark.table("SILVER.{0}".format(row['TableName_SLV'])).count()
+      print ("Row counts- BRONZE.{0}:{1}, SILVER.{2}:{3}".format(row['TableName_BRZ'],rowCnt_BRZ,row['TableName_SLV'],rowCnt_SLV))
+#       print ("SILVER.{0}:{1}".format(row['TableName_SLV'],rowCnt_SLV))
+    else:
+      rowCnt_SLV=-1
+      print ("Row counts- BRONZE.{0}:{1}, No matching SILVER table".format(row['TableName_BRZ'],rowCnt_BRZ))
   return
 
 def resetWatermarkData():
@@ -241,11 +312,11 @@ def cleanDWHTables(schemaName):
   sqlCmd="SELECT TableName_BRZ,TableName_SLV FROM ETL.TableNames "
   dfRows=spark.sql(sqlCmd).collect()
   for row in dfRows:
-    if schemaName=="SILVER":
+    if schemaName=="SILVER" and row['TableName_SLV'] is not None:
       spark.sql("TRUNCATE TABLE SILVER.{0}".format(row['TableName_SLV']))
       resetWatermarkData()
       print ("Table SILVER.{} has been cleaned".format(row['TableName_SLV']))
-    else:   
+    elif schemaName=="BRONZE" :   
       spark.sql("TRUNCATE TABLE BRONZE.{0}".format(row['TableName_BRZ']))  
       print ("Table BRONZE.{} has been cleaned".format(row['TableName_BRZ']))
   return
@@ -318,13 +389,6 @@ def ingestBronzeTables(truncateFirstFlg):
 
 
 
-def getJoinConditions(schemaName,tableName):
-  sqlCmd="SELECT ColumnName,SourceColumnName FROM ETL.TableFields WHERE SchemaName='{0}' AND TableName='{1}' and IsBusinessKeyFlg=true".format(schemaName,tableName)
-  df=spark.sql(sqlCmd)
-  if df.count()>0:
-      rddMap=df.rdd.map(lambda x:" AND S.{0}=T.{1} ".format(x['SourceColumnName'],x['ColumnName']))
-      joinCond=rddMap.reduce(lambda x,y:x+y).replace("AND","",1)  
-  return joinCond
 
 def getKeyFieldsList(schemaName,tableName,keyType):
     sqlKeys="SELECT ColumnName FROM ETL.TableFields WHERE SchemaName='{0}' AND TableName='{1}' and {2}=true".format(schemaName,tableName,keyType)
@@ -344,21 +408,6 @@ def getFnSkList(schemaName,tableName):
         fnSurrKeyLst+=(','+fnSet[2])
     return fnSurrKeyLst
   
-def getFnSurrKeyMetadata(schemaName,tableName):
-  sqlKeys="SELECT ColumnName,SourceColumnName,ForeignKeyTableName FROM ETL.TableFields WHERE SchemaName='{1}' AND TableName='{0}' and IsForeignKeyFlg=true".format(tableName,schemaName)
-#   fkKeyArr =getKeyFieldsArr(schemaName,tableName,"IsForeignKeyFlg")
-  fkKeyArr =spark.sql(sqlKeys).collect()
-  fkArr=[]
-  fnSurrKeyLst=""
-  for fk in fkKeyArr:
-    primFieldName,primFieldNameRef,fnKeyTableName=fk
-    fnSurrKey=getKeyFieldName(fnKeyTableName,"IsSurrogateKeyFlg") 
-    fnBussKeyName=getKeyFieldName(fnKeyTableName,"IsBusinessKeyFlg")
-    fnTimestampName=getKeyFieldName(fnKeyTableName,"IsTimestampFlg")
-#     print(primFieldName,fnKeyTableName,fnSurrKey,fnBussKeyName)
-    fkArr.append([primFieldName,fnKeyTableName,fnSurrKey,fnBussKeyName,primFieldNameRef])
-  return fkArr
-
 def ingestDimTables(tableArr,truncateFirstFlg,initialUploadFlg):
   for tableItem in tableArr:
      sqlInsertStr,sqlUpdateStr=getUpdInsCmds(tableItem.TableName_SLV,'D',tableItem.ChgHstTrackingType)
@@ -376,47 +425,80 @@ def ingestDimTables(tableArr,truncateFirstFlg,initialUploadFlg):
 #      print(sqlUpdateStr)
   return  
 
+
+# def getDimInsertCmd(lastId,tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,joinCond,fldListStr,ChgHstTrackingType):
+#   surrKeyName=getKeyFieldName(tableName_SLV,"IsSurrogateKeyFlg")
+#   fnSKLst=getFnSkList("SILVER",tableName_SLV)
+#   if   ChgHstTrackingType==1:                        
+#     insCmd=("INSERT INTO SILVER.{1} SELECT {6} FROM (SELECT monotonically_increasing_id()+{0} AS {7},S.*,current_timestamp() as ValidFromDate,\
+#     cast('9999-12-31' as timestamp) AS ValidToDate {8} FROM BRONZE.{2} AS S LEFT JOIN SILVER.{1} AS T ON {5} WHERE T.{7} IS NULL AND (S.{3} IS NULL OR S.{3}>='{4}'))")\
+#     .format(lastId,tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,joinCond,fldListStr,surrKeyName,fnSKLst)
+#   elif ChgHstTrackingType==2:
+#     insCmd=("INSERT INTO SILVER.{1} SELECT {6} FROM (SELECT monotonically_increasing_id()+{0} AS {7},S.*,current_timestamp() as ValidFromDate,\
+#     cast('9999-12-31' as timestamp) AS ValidToDate {8} FROM BRONZE.{2} AS S LEFT JOIN SILVER.{1} AS T ON {5} WHERE (S.{3} IS NULL OR S.{3}>='{4}'))")\
+#      .format(lastId,tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,joinCond,fldListStr,surrKeyName,fnSKLst)
+#   return (insCmd)
+
 def getDimMergeCmd(lastId,tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,joinCond,ChgHstTrackingType):
-  if   ChgHstTrackingType==1:  
+  if ChgHstTrackingType==1:  
     mrgCmd=getMergeOverwriteCmd(tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,joinCond)
   elif ChgHstTrackingType==2:
-    mrgCmd=("MERGE INTO SILVER.{0} AS T USING BRONZE.{1} AS S ON {4} AND S.{3}>='{2}' \
-    WHEN MATCHED THEN UPDATE SET ValidToDate=current_timestamp()").format(tableName_SLV,tableName_BRZ,lastUpdDt,tmspFld,joinCond)
+    mrgCmd="MERGE INTO SILVER.{0} AS T USING BRONZE.{1} AS S ON {4} AND S.{3}>='{2}' \
+    WHEN MATCHED THEN UPDATE SET ValidToDate=current_timestamp()".format(tableName_SLV,tableName_BRZ,lastUpdDt,tmspFld,joinCond)
   return (mrgCmd)
 
-def getDimInsertCmd(lastId,tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,joinCond,fldListStr,ChgHstTrackingType):
+
+def getDimInsertCmd(lastId,tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,srcTrgJoinCond,lkpJoinCond,fldLstFrmSrc,fldLstFrmTrg,ChgHstTrackingType):
   surrKeyName=getKeyFieldName(tableName_SLV,"IsSurrogateKeyFlg")
   fnSKLst=getFnSkList("SILVER",tableName_SLV)
-  if   ChgHstTrackingType==1:                        
-    insCmd=("INSERT INTO SILVER.{1} SELECT {6} FROM (SELECT monotonically_increasing_id()+{0} AS {7},S.*,current_timestamp() as ValidFromDate,\
-    cast('9999-12-31' as timestamp) AS ValidToDate {8} FROM BRONZE.{2} AS S LEFT JOIN SILVER.{1} AS T ON {5} WHERE T.{7} IS NULL AND (S.{3} IS NULL OR S.{3}>='{4}'))")\
-    .format(lastId,tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,joinCond,fldListStr,surrKeyName,fnSKLst)
+  if ChgHstTrackingType==1:                        
+    insCmd=("INSERT INTO SILVER.{1} SELECT {10} FROM (SELECT monotonically_increasing_id()+{0} AS {7},current_timestamp() as ValidFromDate,\
+    cast('9999-12-31' as timestamp) AS ValidToDate,1 as CurrentFlg, {6} FROM BRONZE.{2} AS S LEFT JOIN SILVER.{1} AS T ON {5} {9} WHERE T.{7} IS NULL AND (S.{3} IS NULL OR S.{3}>='{4}'))")\
+    .format(lastId,tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,srcTrgJoinCond,fldLstFrmSrc,surrKeyName,fnSKLst,lkpJoinCond,fldLstFrmTrg)
   elif ChgHstTrackingType==2:
-    insCmd=("INSERT INTO SILVER.{1} SELECT {6} FROM (SELECT monotonically_increasing_id()+{0} AS {7},S.*,current_timestamp() as ValidFromDate,\
-    cast('9999-12-31' as timestamp) AS ValidToDate {8} FROM BRONZE.{2} AS S LEFT JOIN SILVER.{1} AS T ON {5} WHERE (S.{3} IS NULL OR S.{3}>='{4}'))")\
-     .format(lastId,tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,joinCond,fldListStr,surrKeyName,fnSKLst)
+    insCmd=("INSERT INTO SILVER.{1} SELECT {10} FROM (SELECT monotonically_increasing_id()+{0} AS {7},current_timestamp() as ValidFromDate,1 as CurrentFlg,\
+    cast('9999-12-31' as timestamp) AS ValidToDate, {6} FROM BRONZE.{2} AS S LEFT JOIN SILVER.{1} AS T ON {5} {9} WHERE (S.{3} IS NULL OR S.{3}>='{4}'))")\
+     .format(lastId,tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,srcTrgJoinCond,fldLstFrmSrc,surrKeyName,fnSKLst,lkpJoinCond,fldLstFrmTrg)
   return (insCmd)
- 
+
+def getFactInsertCmd(tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,srcTrgJoinCond,fldLstFrmSrc,lkpJoinList,busKeyFld):
+#     fnSurrKeyLst=""
+#     joinStr=""
+#     aliasNum=1
+#     fnKeysArr=getFnSurrKeyMetadata("SILVER",tableName_SLV)
+#     for fnSet in fnKeysArr:
+#       joinStr+= " LEFT JOIN SILVER.{1} AS D{4} ON S.{3}=D{4}.{2} AND D{4}.ValidToDate=CAST('9999-12-31' as timestamp)".format(fnSet[0],fnSet[1],fnSet[3],fnSet[4],aliasNum)
+#       aliasNum+=1
+    insertCmd="INSERT INTO SILVER.{1} SELECT {2} FROM BRONZE.{0} AS S LEFT JOIN SILVER.{1} AS T ON {3} {4} WHERE T.{9} IS NULL AND S.{5}>='{8}'\
+     ".format(tableName_BRZ,tableName_SLV,fldLstFrmSrc,srcTrgJoinCond,lkpJoinList,tmspFld,lastUpdDt,srcTrgJoinCond,lastUpdDt,busKeyFld)
+    print (insertCmd)
+#   print("Ingestiion for {0} is complete".format(tableItem.TableName_BRZ))
+    return (insertCmd)   #Add update statement
+
 def getUpdInsCmds(tableName_SLV,tableType,ChgHstTrackingType):
   tableName_BRZ=getBronzeTableName(tableName_SLV)          #Get BRONZE table name   
 #   print (tableName_BRZ,tableName_SLV)
-  sourceTargetJoinCond=getJoinConditions('SILVER',tableName_SLV)    #Get join conditions
+  sourceTargetJoinCond=getJoinConditions('SILVER',tableName_SLV,"S","T")    #Get join conditions
+  lkpJoinList=getLkpJoinList("SILVER",tableName_SLV)
 #   print (sourceTargetJoinCond)
   tmspFld=getKeyFieldName(tableName_SLV,"IsTimestampFlg") #Get timestamp field name
+  busKeyFld=getKeyFieldName(tableName_SLV,"IsBusinessKeyFlg") #Get timestamp field name
   lastUpdDt,lastId=getWatermarkData(tableName_SLV)        #Get watermark data    
   if tableType=='D':
-    fldLstStr=getFieldList("SILVER",tableName_SLV,True,"")
+    fldListSrc=getFieldListNew("SILVER",tableName_SLV,"S.",False)
+    fldListTrg=getFieldListNew("SILVER",tableName_SLV,"",True)
+#     fldLstStr=getFieldList("SILVER",tableName_SLV,True,"")
     updateCmd=getDimMergeCmd(lastId,tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,sourceTargetJoinCond,ChgHstTrackingType)
-    insertCmd=getDimInsertCmd(lastId,tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,sourceTargetJoinCond,fldLstStr,ChgHstTrackingType)
+    insertCmd=getDimInsertCmd(lastId,tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,sourceTargetJoinCond,lkpJoinList,fldListSrc,fldListTrg,ChgHstTrackingType)
   else:
-    fldLstStr =getFieldList("SILVER",tableName_SLV,True,"S.",True)
+    fldListSrc =getFieldListNew("SILVER",tableName_SLV,"S.",False)
     updateCmd=getMergeOverwriteCmd(tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,sourceTargetJoinCond)
-    insertCmd=getFactInsertCmd(tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,sourceTargetJoinCond,fldLstStr)
+    insertCmd=getFactInsertCmd(tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,sourceTargetJoinCond,fldListSrc,lkpJoinList,busKeyFld)
   return (insertCmd,updateCmd)
 
 def getMergeOverwriteCmd(tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,joinCond):
-  sqlCmd="SELECT SourceColumnName,ColumnName FROM ETL.TableFields WHERE SchemaName='{0}' AND TableName='{1}' AND IsSCDFlg=False AND IsSurrogateKeyFlg=False AND IsBusinessKeyFlg=False AND IsTimestampFlg=False\
-    AND IsForeignKeyFlg=False ORDER BY ColumnOrder".format("SILVER",tableName_SLV)
+  sqlCmd="SELECT SourceColumnName,ColumnName FROM ETL.TableFields WHERE SchemaName='{0}' AND TableName='{1}' AND IsSCDFlg=False AND IsSurrogateKeyFlg=False AND \
+   IsBusinessKeyFlg=False AND IsTimestampFlg=False AND IsForeignKeyFlg=False ORDER BY ColumnOrder".format("SILVER",tableName_SLV)
   df=spark.sql(sqlCmd)
   rddMap=df.rdd.map(lambda x:",T.{0}=S.{1}".format(x['ColumnName'],x['SourceColumnName']))
   fldUpdStr=rddMap.reduce(lambda x,y:x+y).replace(',','',1)
@@ -425,19 +507,21 @@ def getMergeOverwriteCmd(tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,joinCond)
   WHEN MATCHED THEN UPDATE SET {5}").format(tableName_SLV,tableName_BRZ,lastUpdDt,tmspFld,joinCond,fldUpdStr)
   return (mergeCmd)
 
-def getFactInsertCmd(tableName_SLV,tableName_BRZ,tmspFld,lastUpdDt,sourceTargetJoinCond,fldListStr):
-    fnSurrKeyLst=""
-    joinStr=""
-    aliasNum=1
-    fnKeysArr=getFnSurrKeyMetadata("SILVER",tableName_SLV)
-    for fnSet in fnKeysArr:
-      joinStr+= " LEFT JOIN SILVER.{1} AS D{4} ON S.{3}=D{4}.{2} AND D{4}.ValidToDate=CAST('9999-12-31' as timestamp)".format(fnSet[0],fnSet[1],fnSet[3],fnSet[4],aliasNum)
-      aliasNum+=1
-    insertCmd="INSERT INTO SILVER.{1} SELECT {2} FROM BRONZE.{0} AS S LEFT JOIN SILVER.{1} AS T ON {3}  {6} WHERE T.{7} IS NULL AND S.{4}>='{5}'\
-     ".format(tableName_BRZ,tableName_SLV,fldListStr,sourceTargetJoinCond,tmspFld,lastUpdDt,joinStr,fnSet[3])
-    print (insertCmd)
-#   print("Ingestiion for {0} is complete".format(tableItem.TableName_BRZ))
-    return (insertCmd)   #Add update statement
+def getFnSurrKeyMetadata(schemaName,tableName):
+  sqlKeys="SELECT ColumnName,SourceColumnName,ForeignKeyTableName FROM ETL.TableFields WHERE SchemaName='{1}' AND TableName='{0}' and IsForeignKeyFlg=true".format(tableName,schemaName)
+#   fkKeyArr =getKeyFieldsArr(schemaName,tableName,"IsForeignKeyFlg")
+  fkKeyArr =spark.sql(sqlKeys).collect()
+  fkArr=[]
+  fnSurrKeyLst=""
+  for fk in fkKeyArr:
+    primFieldName,primFieldNameRef,fnKeyTableName=fk
+    fnSurrKey=getKeyFieldName(fnKeyTableName,"IsSurrogateKeyFlg") 
+    fnBussKeyName=getKeyFieldName(fnKeyTableName,"IsBusinessKeyFlg")
+    fnTimestampName=getKeyFieldName(fnKeyTableName,"IsTimestampFlg")
+#     print(primFieldName,fnKeyTableName,fnSurrKey,fnBussKeyName)
+    fkArr.append([primFieldName,fnKeyTableName,fnSurrKey,fnBussKeyName,primFieldNameRef])
+  return fkArr
+
 
 def ingestFactTables(tableArr,truncateFirstFlg,initialUploadFlg):
   for tableItem in tableArr:
@@ -456,10 +540,10 @@ def ingestFactTables(tableArr,truncateFirstFlg,initialUploadFlg):
   return  
 
 def ingestSilverTables(truncateFirstFlg,initialUploadFlg):
-  df=spark.sql("Select TableName_SLV,ChgHstTrackingType FROM ETL.TableNames WHERE TableType='D'")
+  df=spark.sql("Select TableName_SLV,ChgHstTrackingType FROM ETL.TableNames WHERE TableName_SLV IS NOT NULL AND TableType='D'")
   tbsArr=df.collect()
   ingestDimTables(tbsArr,truncateFirstFlg,initialUploadFlg)
-  df=spark.sql("Select TableName_SLV,ChgHstTrackingType FROM ETL.TableNames WHERE TableType='F'")
+  df=spark.sql("Select TableName_SLV,ChgHstTrackingType FROM ETL.TableNames WHERE TableName_SLV IS NOT NULL AND TableType='F'")
   tbsArr=df.collect()
   ingestFactTables(tbsArr,truncateFirstFlg,initialUploadFlg)
   return
