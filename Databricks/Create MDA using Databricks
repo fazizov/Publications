@@ -12,15 +12,27 @@ from pyspark.sql.types import StructType
 
 # COMMAND ----------
 
+def createStorageMount():
+  blobaccname=dbutils.secrets.get(scope="AiKvScope2", key="blobAccName")
+  blobkey=dbutils.secrets.get(scope="AiKvScope2", key="blobkey")
+  dbutils.fs.mount(source = "wasbs://mda@{0}.blob.core.windows.net".format(blobaccname),
+     mount_point = "/mnt/mda/",
+     extra_configs = {"fs.azure.account.key.{0}.blob.core.windows.net".format(blobaccname):"{0}".format(blobkey)})
+
+# COMMAND ----------
+
 # MAGIC %md ####Create metadata tables
 
 # COMMAND ----------
 
-def createMetaTables():
+def createDatabases():
   spark.sql("CREATE DATABASE IF NOT EXISTS BRONZE")
   spark.sql("CREATE DATABASE IF NOT EXISTS SILVER")
   spark.sql("CREATE DATABASE IF NOT EXISTS GOLD")
   spark.sql("CREATE DATABASE IF NOT EXISTS ETL")
+  pass
+  
+def createMetaTables():
   spark.sql("DROP TABLE IF EXISTS ETL.TableNames")
   sqlStr="CREATE  TABLE ETL.TableNames (\
   TableName_GLD string,\
@@ -92,7 +104,8 @@ def populateTableNames():
   OPTIONS (header 'true')\
   LOCATION '/mnt/mda/source/Metadata/Metadata_Tables.csv'"
   spark.sql(sqlStr)      
-  spark.sql("INSERT INTO ETL.TableNames SELECT TableName_GLD,TableName_SLV,TableName_BRZ,SourcePath,TableType,ChangeTrackingType,\
+  spark.sql("INSERT INTO ETL.TableNames SELECT TableName_GLD,TableName_SLV,\
+    TableName_BRZ,SourcePath,TableType,ChangeTrackingType,\
     CAST(WatermarkDate AS timestamp),LastId FROM ETL.TableNames_STG ")
   print ("Table names metedata has been populated")
   return
@@ -121,15 +134,21 @@ def populateTableFields():
   OPTIONS (header 'true')\
   LOCATION '/mnt/mda/source/Metadata/Metadata_Columns.csv'"
   spark.sql(sqlStr)           
-  spark.sql("INSERT INTO ETL.TableFields  SELECT SchemaName,TableName,ColumnName,SourceSchemaName,SourceTableName,SourceColumnName,LookupColumnName,ColumnOrder,ColumnType,\
-  IsSurrogateKeyFlg,IsBusinessKeyFlg,IsTimestampFlg,IsPartitionKeyFlg,IsSCDFlg,IsDateKey,IsSnapshotKey FROM ETL.TableFields_STG WHERE TableName IS NOT NULL ORDER BY TableName,ColumnOrder")
+  spark.sql("INSERT INTO ETL.TableFields  \
+  SELECT SchemaName,TableName,ColumnName,SourceSchemaName,SourceTableName,SourceColumnName,\
+  LookupColumnName,ColumnOrder,ColumnType,IsSurrogateKeyFlg,IsBusinessKeyFlg,IsTimestampFlg,\
+  IsPartitionKeyFlg,IsSCDFlg,IsDateKey,IsSnapshotKey \
+  FROM ETL.TableFields_STG WHERE TableName IS NOT NULL ORDER BY TableName,ColumnOrder")
   #Add Sourcefilename metadata
-  spark.sql("INSERT INTO ETL.TableFields  SELECT 'BRONZE',TableName_BRZ,'SourceFileName',Null,Null,Null,Null,999,'STRING',False,False,False,False,False,False,False \
+  spark.sql("INSERT INTO ETL.TableFields \
+  SELECT 'BRONZE',TableName_BRZ,'SourceFileName',Null,Null,\
+  Null,Null,999,'STRING',False,False,False,False,False,False,False \
   FROM ETL.TableNames WHERE TableName_BRZ IS NOT NULL  ")
   print ("Column names metadata has been populated")
   return
 
 def InitializeMetadata():
+  createDatabases()
   createMetaTables()
   populateTableNames()
   populateTableFields()
@@ -141,7 +160,7 @@ def InitializeMetadata():
 
 # COMMAND ----------
 
-def getTableCreateCmd(tableName,schemaName):
+def generateTableCreateCmd(tableName,schemaName):
    partitionKey=getKeyFieldName(tableName,"IsPartitionKeyFlg")
 #    print (tableName,tableSchema) 
    dropCmdStr="DROP TABLE IF EXISTS {1}.{0}".format(tableName,schemaName) 
@@ -157,7 +176,7 @@ def getTableCreateCmd(tableName,schemaName):
       createCmdStr=""
    return (dropCmdStr,createCmdStr)
 
-def populateDummyRecords():
+def createGenericDimensions():
    print ("Populating dimension tables with dummy records") 
 #    tabLst=dfTabs.collect()
    tabLst= getQueryResultsAsList("SELECT TableName_SLV FROM ETL.TableNames WHERE TableName_SLV IS NOT NULL AND TableType='D'")
@@ -197,12 +216,12 @@ def createDWHTables(SchemaName):
   tabLst=getQueryResultsAsList("SELECT {0} FROM ETL.TableNames WHERE {0} IS NOT NULL".format(TableColNm))
   for row in tabLst:
 #     print ("Table {0}".format(row[TableColNm]))
-    dropBrzStr,createBrzStr=getTableCreateCmd(row[TableColNm],SchemaName)
+    dropCmd,createCmd=generateTableCreateCmd(row[TableColNm],SchemaName)
 #     print (createBrzStr)
-    spark.sql(dropBrzStr)
-    spark.sql(createBrzStr)
+    spark.sql(dropCmd)
+    spark.sql(createCmd)
     print("Table {} has been created".format(row[TableColNm]))
-  populateDummyRecords()  
+  createGenericDimensions()  
   return        
 
 # COMMAND ----------
@@ -444,7 +463,7 @@ def ingestDimTables(tableArr,truncateFirstFlg,initialUploadFlg,printSQLCmdsFlg):
     if printSQLCmdsFlg==True:
       print(sqlUpdateStr)
     spark.sql(sqlUpdateStr)
-    updateETLLogs("SILVER",tableItem.TableName_SLV) 
+#     updateETLLogs("SILVER",tableItem.TableName_SLV) 
     updateETLLogs("SILVER",tableItem.TableName_SLV) 
     updateWatermarkData(tableItem.TableName_SLV,'D') 
 #      print(sqlUpdateStr)
@@ -523,7 +542,7 @@ def ingestFactTables(tableArr,truncateFirstFlg,initialUploadFlg,printSQLCmdsFlg)
         print(delCmd) 
       spark.sql(delCmd)
       updateETLLogs("SILVER",tableItem.TableName_SLV)
-    updateETLLogs("SILVER",tableItem.TableName_SLV)
+#     updateETLLogs("SILVER",tableItem.TableName_SLV)
     updateWatermarkData(tableItem.TableName_SLV,'F')  
   return  
 
