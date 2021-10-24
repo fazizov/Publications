@@ -1620,7 +1620,7 @@
 				"nbformat": 4,
 				"nbformat_minor": 2,
 				"bigDataPool": {
-					"referenceName": "MySpark",
+					"referenceName": "Spar31",
 					"type": "BigDataPoolReference"
 				},
 				"sessionProperties": {
@@ -1633,7 +1633,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "6eaf4400-501f-4522-a0d3-118c094cec2d"
+						"spark.autotune.trackingId": "7f97f1ce-87af-49e3-bef0-48ecc02a3cfa"
 					}
 				},
 				"metadata": {
@@ -1647,22 +1647,33 @@
 						"name": "sql"
 					},
 					"a365ComputeOptions": {
-						"id": "/subscriptions/9dd2c898-8111-4322-91d6-a039a00bd513/resourceGroups/Synapse-study/providers/Microsoft.Synapse/workspaces/synapse-study-ws/bigDataPools/MySpark",
-						"name": "MySpark",
+						"id": "/subscriptions/8e21e38f-7e49-4ae8-9500-70138d5ded23/resourceGroups/Publications/providers/Microsoft.Synapse/workspaces/fa-publ-ws/bigDataPools/Spar31",
+						"name": "Spar31",
+						"type": "Spark",
+						"endpoint": "https://fa-publ-ws.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Spar31",
 						"auth": {
 							"type": "AAD",
 							"authResource": "https://dev.azuresynapse.net"
-						}
-					}
+						},
+						"sparkVersion": "3.1",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"automaticScaleJobs": false
+					},
+					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
 						"source": [
-							"CREATE DATABASE bronze LOCATION \"abfss://synstg.dfs.core.windows.net/syn-fs/delta/bronze/\""
+							"CREATE DATABASE IF NOT EXISTS bronze LOCATION \"/delta/bronze/\""
 						],
 						"outputs": [],
-						"execution_count": 13
+						"execution_count": 6
 					},
 					{
 						"cell_type": "code",
@@ -1675,18 +1686,23 @@
 								"transient": {
 									"deleting": false
 								}
-							}
+							},
+							"collapsed": false
 						},
 						"source": [
-							"-- USE bronze;\r\n",
-							"CREATE TABLE Address USING DELTA \r\n",
-							"LOCATION \"abfss://synstg.dfs.core.windows.net/syn-fs/delta/bronze/Address/\"\r\n",
-							"\r\n",
-							"\r\n",
-							"    "
+							"USE bronze;\r\n",
+							"CREATE TABLE IF NOT EXISTS  Address USING DELTA LOCATION \"/delta/bronze/Address/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS  Customer USING DELTA LOCATION \"/delta/bronze/Customer/\";       \r\n",
+							"CREATE TABLE IF NOT EXISTS  CustomerAddress USING DELTA LOCATION \"/delta/bronze/CustomerAddress/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS  Product USING DELTA LOCATION \"/delta/bronze/Product/\";  \r\n",
+							"CREATE TABLE IF NOT EXISTS  ProductCategory USING DELTA LOCATION \"/delta/bronze/ProductCategory/\";       \r\n",
+							"CREATE TABLE IF NOT EXISTS  ProductDescription USING DELTA LOCATION \"/delta/bronze/ProductDescription/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS  ProductModel USING DELTA LOCATION \"/delta/bronze/ProductModel/\";       \r\n",
+							"CREATE TABLE IF NOT EXISTS  SalesOrderDetail USING DELTA LOCATION \"/delta/bronze/SalesOrderDetail/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS  SalesOrderHeader USING DELTA LOCATION \"/delta/bronze/SalesOrderHeader/\";                   "
 						],
 						"outputs": [],
-						"execution_count": 12
+						"execution_count": 7
 					},
 					{
 						"cell_type": "code",
@@ -1699,13 +1715,14 @@
 								"transient": {
 									"deleting": false
 								}
-							}
+							},
+							"collapsed": false
 						},
 						"source": [
-							"Select * from Address"
+							"Select * from SalesOrderDetail"
 						],
 						"outputs": [],
-						"execution_count": null
+						"execution_count": 8
 					},
 					{
 						"cell_type": "code",
