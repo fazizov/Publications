@@ -14,7 +14,7 @@
 					},
 					"activities": [
 						{
-							"name": "DFFromJsonDelta_copy",
+							"name": "DFFromJsonDelta",
 							"type": "ExecuteDataFlow",
 							"dependsOn": [],
 							"policy": {
