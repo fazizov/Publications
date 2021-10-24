@@ -17,220 +17,11 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "f71b9825-c00b-4b1e-9239-d7f070d43c9e"
+				"spark.autotune.trackingId": "6eaf4400-501f-4522-a0d3-118c094cec2d"
 			}
 		},
 		"metadata": {
 			"saveOutput": true,
-			"synapse_widget": {
-				"version": "0.1",
-				"state": {
-					"9473b093-0114-4b65-adc6-892f5a431ecc": {
-						"type": "Synapse.DataFrame",
-						"sync_state": {
-							"table": {
-								"rows": [
-									{
-										"0": "9",
-										"1": "8713 Yosemite Ct.",
-										"3": "Bothell",
-										"4": "United States",
-										"5": "2006-07-01T00:00:00",
-										"6": "98011",
-										"7": "Washington",
-										"8": "268af621-76d7-4c78-9441-144fd139821a",
-										"9": "/raw/json/SalesLTAddress.json",
-										"10": "2021-10-24 14:50:13.228"
-									},
-									{
-										"0": "11",
-										"1": "1318 Lasalle Street",
-										"3": "Bothell",
-										"4": "United States",
-										"5": "2007-04-01T00:00:00",
-										"6": "98011",
-										"7": "Washington",
-										"8": "981b3303-aca2-49c7-9a96-fb670785b269",
-										"9": "/raw/json/SalesLTAddress.json",
-										"10": "2021-10-24 14:50:13.228"
-									},
-									{
-										"0": "25",
-										"1": "9178 Jumping St.",
-										"3": "Dallas",
-										"4": "United States",
-										"5": "2006-09-01T00:00:00",
-										"6": "75201",
-										"7": "Texas",
-										"8": "c8df3bd9-48f0-4654-a8dd-14a67a84d3c6",
-										"9": "/raw/json/SalesLTAddress.json",
-										"10": "2021-10-24 14:50:13.228"
-									},
-									{
-										"0": "28",
-										"1": "9228 Via Del Sol",
-										"3": "Phoenix",
-										"4": "United States",
-										"5": "2005-09-01T00:00:00",
-										"6": "85004",
-										"7": "Arizona",
-										"8": "12ae5ee1-fc3e-468b-9b92-3b970b169774",
-										"9": "/raw/json/SalesLTAddress.json",
-										"10": "2021-10-24 14:50:13.228"
-									},
-									{
-										"0": "32",
-										"1": "26910 Indela Road",
-										"3": "Montreal",
-										"4": "Canada",
-										"5": "2006-08-01T00:00:00",
-										"6": "H1Y 2H5",
-										"7": "Quebec",
-										"8": "84a95f62-3ae8-4e7e-bbd5-5a6f00cd982d",
-										"9": "/raw/json/SalesLTAddress.json",
-										"10": "2021-10-24 14:50:13.228"
-									},
-									{
-										"0": "185",
-										"1": "2681 Eagle Peak",
-										"3": "Bellevue",
-										"4": "United States",
-										"5": "2006-09-01T00:00:00",
-										"6": "98004",
-										"7": "Washington",
-										"8": "7bccf442-2268-46cc-8472-14c44c14e98c",
-										"9": "/raw/json/SalesLTAddress.json",
-										"10": "2021-10-24 14:50:13.228"
-									},
-									{
-										"0": "297",
-										"1": "7943 Walnut Ave",
-										"3": "Renton",
-										"4": "United States",
-										"5": "2006-08-01T00:00:00",
-										"6": "98055",
-										"7": "Washington",
-										"8": "52410da4-2778-4b1d-a599-95746625ce6d",
-										"9": "/raw/json/SalesLTAddress.json",
-										"10": "2021-10-24 14:50:13.228"
-									},
-									{
-										"0": "445",
-										"1": "6388 Lake City Way",
-										"3": "Burnaby",
-										"4": "Canada",
-										"5": "2006-09-01T00:00:00",
-										"6": "V5A 3A6",
-										"7": "British Columbia",
-										"8": "53572f25-9133-4a8b-a065-102ff35416ee",
-										"9": "/raw/json/SalesLTAddress.json",
-										"10": "2021-10-24 14:50:13.228"
-									},
-									{
-										"0": "446",
-										"1": "52560 Free Street",
-										"3": "Toronto",
-										"4": "Canada",
-										"5": "2005-08-01T00:00:00",
-										"6": "M4B 1V7",
-										"7": "Ontario",
-										"8": "801a1dfc-5125-486b-aa84-ccbd2ec57ca4",
-										"9": "/raw/json/SalesLTAddress.json",
-										"10": "2021-10-24 14:50:13.228"
-									},
-									{
-										"0": "447",
-										"1": "22580 Free Street",
-										"3": "Toronto",
-										"4": "Canada",
-										"5": "2006-08-01T00:00:00",
-										"6": "M4B 1V7",
-										"7": "Ontario",
-										"8": "88cee379-dbb8-433b-b84e-a35e09435500",
-										"9": "/raw/json/SalesLTAddress.json",
-										"10": "2021-10-24 14:50:13.228"
-									}
-								],
-								"schema": [
-									{
-										"key": "0",
-										"name": "AddressID",
-										"type": "string"
-									},
-									{
-										"key": "1",
-										"name": "AddressLine1",
-										"type": "string"
-									},
-									{
-										"key": "2",
-										"name": "AddressLine2",
-										"type": "string"
-									},
-									{
-										"key": "3",
-										"name": "City",
-										"type": "string"
-									},
-									{
-										"key": "4",
-										"name": "CountryRegion",
-										"type": "string"
-									},
-									{
-										"key": "5",
-										"name": "ModifiedDate",
-										"type": "string"
-									},
-									{
-										"key": "6",
-										"name": "PostalCode",
-										"type": "string"
-									},
-									{
-										"key": "7",
-										"name": "StateProvince",
-										"type": "string"
-									},
-									{
-										"key": "8",
-										"name": "rowguid",
-										"type": "string"
-									},
-									{
-										"key": "9",
-										"name": "SourceFileName",
-										"type": "string"
-									},
-									{
-										"key": "10",
-										"name": "DateInserted",
-										"type": "timestamp"
-									}
-								]
-							},
-							"isSummary": false,
-							"language": "scala"
-						},
-						"persist_state": {
-							"view": {
-								"type": "details",
-								"chartOptions": {
-									"chartType": "bar",
-									"aggregationType": "count",
-									"categoryFieldKeys": [
-										"0"
-									],
-									"seriesFieldKeys": [
-										"0"
-									],
-									"isStacked": false
-								}
-							}
-						}
-					}
-				}
-			},
 			"enableDebugMode": false,
 			"kernelspec": {
 				"name": "synapse_sparksql",
@@ -242,26 +33,19 @@
 			"a365ComputeOptions": {
 				"id": "/subscriptions/9dd2c898-8111-4322-91d6-a039a00bd513/resourceGroups/Synapse-study/providers/Microsoft.Synapse/workspaces/synapse-study-ws/bigDataPools/MySpark",
 				"name": "MySpark",
-				"type": "Spark",
-				"endpoint": "https://synapse-study-ws.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/MySpark",
 				"auth": {
 					"type": "AAD",
 					"authResource": "https://dev.azuresynapse.net"
-				},
-				"sparkVersion": "2.4",
-				"nodeCount": 10,
-				"cores": 4,
-				"memory": 28,
-				"extraHeader": null
-			}
+				}
+			},
+			"sessionKeepAliveTimeout": 30
 		},
 		"cells": [
 			{
 				"cell_type": "code",
 				"source": [
-					"CREATE DATABASE bronze --LOCATION \"abfss://synstg.dfs.core.windows.net/syn-fs/delta/bronze/\""
+					"CREATE DATABASE bronze LOCATION \"abfss://synstg.dfs.core.windows.net/syn-fs/delta/bronze/\""
 				],
-				"attachments": null,
 				"execution_count": 13
 			},
 			{
@@ -285,7 +69,6 @@
 					"\r\n",
 					"    "
 				],
-				"attachments": null,
 				"execution_count": 12
 			},
 			{
@@ -304,7 +87,6 @@
 				"source": [
 					"Select * from Address"
 				],
-				"attachments": null,
 				"execution_count": null
 			},
 			{
@@ -340,7 +122,6 @@
 					"df = spark.read.load('wasbs://syn-fs@synstg.blob.core.windows.net/delta/bronze/Address/*.parquet', format='parquet')\r\n",
 					"display(df.limit(10))"
 				],
-				"attachments": null,
 				"execution_count": 11
 			},
 			{
@@ -363,7 +144,6 @@
 					"%%pyspark\r\n",
 					"df.write.mode(\"overwrite\").saveAsTable(\"default.Address\")"
 				],
-				"attachments": null,
 				"execution_count": 6
 			},
 			{
@@ -382,7 +162,6 @@
 				"source": [
 					""
 				],
-				"attachments": null,
 				"execution_count": null
 			}
 		]
