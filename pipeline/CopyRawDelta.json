@@ -53,14 +53,7 @@
 			{
 				"name": "ForEach_Parquet_List",
 				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "ForEach_Json_List",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
