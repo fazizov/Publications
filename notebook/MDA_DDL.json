@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "a46fc6b7-95b1-4265-831a-6c9583a356f6"
+				"spark.autotune.trackingId": "208670d5-9b25-49c8-89be-8de9d9165e04"
 			}
 		},
 		"metadata": {
@@ -104,63 +104,6 @@
 					"Select * from SalesOrderDetail"
 				],
 				"execution_count": 8
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					},
-					"microsoft": {
-						"language": "python"
-					},
-					"collapsed": false
-				},
-				"source": [
-					"%%pyspark\r\n",
-					"blob_account_name = \"synstg\"\r\n",
-					"blob_container_name = \"syn-fs\"\r\n",
-					"from pyspark.sql import SparkSession\r\n",
-					"\r\n",
-					"sc = SparkSession.builder.getOrCreate()\r\n",
-					"token_library = sc._jvm.com.microsoft.azure.synapse.tokenlibrary.TokenLibrary\r\n",
-					"blob_sas_token = token_library.getConnectionString(\"AzureBlobStorage1\")\r\n",
-					"\r\n",
-					"spark.conf.set(\r\n",
-					"    'fs.azure.sas.%s.%s.blob.core.windows.net' % (blob_container_name, blob_account_name),\r\n",
-					"    blob_sas_token)\r\n",
-					"df = spark.read.load('wasbs://syn-fs@synstg.blob.core.windows.net/delta/bronze/Address/*.parquet', format='parquet')\r\n",
-					"display(df.limit(10))"
-				],
-				"execution_count": 11
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					},
-					"microsoft": {
-						"language": "python"
-					}
-				},
-				"source": [
-					"%%pyspark\r\n",
-					"df.write.mode(\"overwrite\").saveAsTable(\"default.Address\")"
-				],
-				"execution_count": 6
 			},
 			{
 				"cell_type": "code",
