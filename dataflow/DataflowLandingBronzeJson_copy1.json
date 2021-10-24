@@ -1,0 +1,23 @@
+{
+	"name": "DataflowLandingBronzeJson_copy1",
+	"properties": {
+		"folder": {
+			"name": "Child flows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "JsonDS2",
+						"type": "DatasetReference"
+					},
+					"name": "JsonRaw"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"script": "parameters{\n\tSourceTableName as string (\"\"),\n\tTargetTableName as string (\"\")\n}\nsource(output(\n\t\tAddressID as integer,\n\t\tAddressLine1 as string,\n\t\tAddressLine2 as string,\n\t\tCity as string,\n\t\tStateProvince as string,\n\t\tCountryRegion as string,\n\t\tPostalCode as string,\n\t\trowguid as string,\n\t\tModifiedDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\trowUrlColumn: 'SourceFileName',\n\tdocumentForm: 'documentPerLine',\n\twildcardPaths:[(concat(\"raw/json/\",$SourceTableName,\".json\"))]) ~> JsonRaw"
+		}
+	}
+}

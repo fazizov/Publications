@@ -1,6 +1,9 @@
 {
 	"name": "DataflowLandingBronzeJson",
 	"properties": {
+		"folder": {
+			"name": "Child flows"
+		},
 		"type": "MappingDataFlow",
 		"typeProperties": {
 			"sources": [
