@@ -12,7 +12,7 @@
 						"value": "@variables('JsonTables')",
 						"type": "Expression"
 					},
-					"isSequential": false,
+					"isSequential": true,
 					"activities": [
 						{
 							"name": "DFFromJsonDelta",
@@ -41,9 +41,9 @@
 										}
 									}
 								},
-								"integrationRuntime": {
-									"referenceName": "IntegrationRuntime1",
-									"type": "IntegrationRuntimeReference"
+								"compute": {
+									"coreCount": 8,
+									"computeType": "General"
 								},
 								"traceLevel": "Fine"
 							}
@@ -68,7 +68,7 @@
 						"value": "@variables('ParquetTables')",
 						"type": "Expression"
 					},
-					"isSequential": false,
+					"isSequential": true,
 					"activities": [
 						{
 							"name": "DFFromParquetDelta",
