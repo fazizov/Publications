@@ -17,15 +17,15 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "208670d5-9b25-49c8-89be-8de9d9165e04"
+				"spark.autotune.trackingId": "5ae7eebb-9e09-4345-a7d2-ef7aecc808d1"
 			}
 		},
 		"metadata": {
 			"saveOutput": true,
 			"enableDebugMode": false,
 			"kernelspec": {
-				"name": "synapse_sparksql",
-				"display_name": "Synapse SQL"
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
 			},
 			"language_info": {
 				"name": "sql"
@@ -101,9 +101,9 @@
 					"collapsed": false
 				},
 				"source": [
-					"Select * from SalesOrderDetail"
+					"Select count(*) from bronze.SalesOrderDetail"
 				],
-				"execution_count": 8
+				"execution_count": 2
 			},
 			{
 				"cell_type": "code",
