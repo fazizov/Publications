@@ -1,0 +1,23 @@
+{
+	"name": "DataflowBonzeSilver",
+	"properties": {
+		"folder": {
+			"name": "Child flows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "BronzeDelta"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"script": "parameters{\n\tSourceTableName as string,\n\tTargetTableName as string\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: (concat(\"delta/bronze/\",$TargetTableName,\"/\"))) ~> BronzeDelta"
+		}
+	}
+}
