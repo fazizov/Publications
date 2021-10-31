@@ -6,15 +6,7 @@
 		},
 		"type": "MappingDataFlow",
 		"typeProperties": {
-			"sources": [
-				{
-					"linkedService": {
-						"referenceName": "AzureBlobStorage1",
-						"type": "LinkedServiceReference"
-					},
-					"name": "BronzeDelta"
-				}
-			],
+			"sources": [],
 			"sinks": [
 				{
 					"linkedService": {
@@ -35,7 +27,7 @@
 					"name": "CalculatePKValue"
 				}
 			],
-			"script": "parameters{\n\tSourceTableName as string,\n\tTargetTableName as string,\n\tPrimaryKeyList as string\n}\nsource(output(\n\t\tProductID as integer,\n\t\tName as string,\n\t\tProductNumber as string,\n\t\tColor as string,\n\t\tStandardCost as decimal(19,4),\n\t\tListPrice as decimal(19,4),\n\t\tSize as string,\n\t\tWeight as decimal(8,2),\n\t\tProductCategoryID as integer,\n\t\tProductModelID as integer,\n\t\tSellStartDate as timestamp,\n\t\tSellEndDate as timestamp,\n\t\tDiscontinuedDate as timestamp,\n\t\tThumbNailPhoto as binary,\n\t\tThumbnailPhotoFileName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/bronze/Product') ~> BronzeDelta\nCalculatePKValue window(over(PKValue),\n\tdesc(DateInserted, true),\n\tRowVersion = denseRank()) ~> RankByInsertDate\nRankByInsertDate filter(RowVersion==1) ~> Deduplicate\nBronzeDelta derive(PKValue = byName($PrimaryKeyList)) ~> CalculatePKValue\nDeduplicate sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: (concat(\"delta/silver/\",$SourceTableName,\"/\")),\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SilverDelta"
+			"script": "parameters{\n\tSourceTableName as string,\n\tTargetTableName as string,\n\tPrimaryKeyList as string,\n\tPrimaryKeyArr as string[]\n}\nCalculatePKValue window(over(PKValue),\n\tdesc(DateInserted, true),\n\tRowVersion = denseRank()) ~> RankByInsertDate\nRankByInsertDate filter(RowVersion==1) ~> Deduplicate\n derive(PKValue = byName($PrimaryKeyList)) ~> CalculatePKValue\nDeduplicate sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: (concat(\"delta/silver/\",$SourceTableName,\"/\")),\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SilverDelta"
 		}
 	}
 }
