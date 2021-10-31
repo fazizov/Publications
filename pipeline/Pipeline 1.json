@@ -21,10 +21,7 @@
 						"parameters": {
 							"SourceTableName": "\"Product\"",
 							"TargetTableName": "\"Product\"",
-							"PrimaryKey": "\"ProductID\"",
-							"PrimaryKeyArr": [
-								"Product"
-							]
+							"PrimaryKey": "\"ProductID\""
 						}
 					},
 					"compute": {
