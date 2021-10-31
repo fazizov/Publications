@@ -19,9 +19,12 @@
 						"referenceName": "DataflowBonzeSilver",
 						"type": "DataFlowReference",
 						"parameters": {
-							"SourceTableName": "\"\"",
-							"TargetTableName": "\"\"",
-							"PrimaryKey": "\"\""
+							"SourceTableName": "\"Product\"",
+							"TargetTableName": "\"Product\"",
+							"PrimaryKey": "\"ProductID\"",
+							"PrimaryKeyArr": [
+								"Product"
+							]
 						}
 					},
 					"compute": {
