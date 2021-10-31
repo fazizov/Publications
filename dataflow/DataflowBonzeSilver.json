@@ -16,8 +16,12 @@
 				}
 			],
 			"sinks": [],
-			"transformations": [],
-			"script": "parameters{\n\tSourceTableName as string,\n\tTargetTableName as string\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: (concat(\"delta/bronze/\",$TargetTableName,\"/\"))) ~> BronzeDelta"
+			"transformations": [
+				{
+					"name": "Window1"
+				}
+			],
+			"script": "parameters{\n\tSourceTableName as string,\n\tTargetTableName as string,\n\tPrimaryKeyList as string\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: (concat(\"delta/bronze/\",$TargetTableName,\"/\"))) ~> BronzeDelta\nBronzeDelta window(over(PkList = $PrimaryKeyList),\n\tdesc(\"DateInserted\", true),\n\tRowVersion = denseRank()) ~> Window1"
 		}
 	}
 }
