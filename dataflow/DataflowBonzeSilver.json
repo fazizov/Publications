@@ -33,9 +33,12 @@
 				},
 				{
 					"name": "Deduplicate"
+				},
+				{
+					"name": "Select1"
 				}
 			],
-			"script": "parameters{\n\tSourceTableName as string (\"\"),\n\tTargetTableName as string (\"\"),\n\tPrimaryKey as string (\"\"),\n\tTimestampColumn as string\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: (concat(\"delta/bronze/\",$SourceTableName,\"/\"))) ~> BronzeDelta\nBronzeDelta derive(PkColumn = byName($PrimaryKey),\n\t\tTSColumn = byName($TimestampColumn)) ~> CalculatedColums\nCalculatedColums window(over(PkColumn),\n\tdesc(TSColumn, true),\n\tRowVersion = denseRank()) ~> Ranking\nRanking filter(RowVersion==1) ~> Deduplicate\nDeduplicate sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: (concat(\"delta/silver/\",$SourceTableName,\"/\")),\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SilverDelta"
+			"script": "parameters{\n\tSourceTableName as string (\"\"),\n\tTargetTableName as string (\"\"),\n\tPrimaryKey as string (\"\"),\n\tTimestampColumn as string\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: (concat(\"delta/bronze/\",$SourceTableName,\"/\"))) ~> BronzeDelta\nBronzeDelta derive(PkColumn = byName($PrimaryKey),\n\t\tTSColumn = byName($TimestampColumn),\n\t\tColumnNamesList = !in(columnNames('BronzeDelta'),\"CompanyName\"),\n\t\tcolumnList := columnNames('BronzeDelta')) ~> CalculatedColums\nCalculatedColums window(over(PkColumn),\n\tdesc(TSColumn, true),\n\tRowVersion = denseRank()) ~> Ranking\nRanking filter(RowVersion==1) ~> Deduplicate\nDeduplicate select(mapColumn(\n\t\tPkColumn\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nSelect1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: (concat(\"delta/silver/\",$SourceTableName,\"/\")),\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SilverDelta"
 		}
 	}
 }
