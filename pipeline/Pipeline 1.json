@@ -15,15 +15,6 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"dataflow": {
-						"referenceName": "DataflowBonzeSilver",
-						"type": "DataFlowReference",
-						"parameters": {
-							"SourceTableName": "\"Product\"",
-							"TargetTableName": "\"Product\"",
-							"PrimaryKey": "\"ProductID\""
-						}
-					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
