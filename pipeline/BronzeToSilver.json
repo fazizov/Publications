@@ -64,7 +64,48 @@
 			"Tables": {
 				"type": "Array",
 				"defaultValue": [
-					"[{\"source\":\"Customer\",\"destination\":\"Customer\",\"primarykey\":\"CustomerID\",\"timestamp\":\"DateInserted\"},{\"source\":\"Address\",\"destination\":\"Address\",\"primarykey\":\"AddressID\",\"timestamp\":\"DateInserted\"},{\"source\":\"Product\",\"destination\":\"Product\",\"primarykey\":\"ProductID\",\"timestamp\":\"DateInserted\"},{\"source\":\"ProductCategory\",\"destination\":\"ProductCategory\",\"primarykey\":\"ProductCategoryID\",\"timestamp\":\"DateInserted\"},{\"source\":\"ProductDescription\",\"destination\":\"ProductDescription\",\"primarykey\":\"ProductDescriptionID\",\"timestamp\":\"DateInserted\"}{\"source\":\"ProductModel\",\"destination\":\" ProductModel\",\"primarykey\":\"ProductModelID\",\"timestamp\":\"DateInserted\"},{\"source\":\"SalesOrderHeader\",\"destination\":\"SalesOrderHeader\",\"primarykey\":\"SalesOrderID\",\"timestamp\":\"DateInserted\"}]"
+					{
+						"source": "Customer",
+						"destination": "Customer",
+						"primarykey": "CustomerID",
+						"timestamp": "DateInserted"
+					},
+					{
+						"source": "Address",
+						"destination": "Address",
+						"primarykey": "AddressID",
+						"timestamp": "DateInserted"
+					},
+					{
+						"source": "Product",
+						"destination": "Product",
+						"primarykey": "ProductID",
+						"timestamp": "DateInserted"
+					},
+					{
+						"source": "ProductCategory",
+						"destination": "ProductCategory",
+						"primarykey": "ProductCategoryID",
+						"timestamp": "DateInserted"
+					},
+					{
+						"source": "ProductDescription",
+						"destination": "ProductDescription",
+						"primarykey": "ProductDescriptionID",
+						"timestamp": "DateInserted"
+					},
+					{
+						"source": "ProductModel",
+						"destination": " ProductModel",
+						"primarykey": "ProductModelID",
+						"timestamp": "DateInserted"
+					},
+					{
+						"source": "SalesOrderHeader",
+						"destination": "SalesOrderHeader",
+						"primarykey": "SalesOrderID",
+						"timestamp": "DateInserted"
+					}
 				]
 			}
 		},
