@@ -65,12 +65,6 @@
 				"type": "Array",
 				"defaultValue": [
 					{
-						"source": "Customer",
-						"destination": "Customer",
-						"primarykey": "CustomerID",
-						"timestamp": "DateInserted"
-					},
-					{
 						"source": "Address",
 						"destination": "Address",
 						"primarykey": "AddressID",
