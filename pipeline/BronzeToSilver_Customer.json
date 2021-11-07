@@ -1,9 +1,9 @@
 {
-	"name": "Pipeline 1",
+	"name": "BronzeToSilver_Customer",
 	"properties": {
 		"activities": [
 			{
-				"name": "Data flow1",
+				"name": "BronzeToSilver_Customer",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
@@ -15,6 +15,16 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DataflowBonzeSilver_Customer",
+						"type": "DataFlowReference",
+						"parameters": {
+							"SourceTableName": "\"Customer\"",
+							"TargetTableName": "\"Customer\"",
+							"PrimaryKey": "\"CustomerID\"",
+							"TimestampColumn": "\"DateInserrted\""
+						}
+					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
@@ -23,6 +33,9 @@
 				}
 			}
 		],
+		"folder": {
+			"name": "Silver"
+		},
 		"annotations": []
 	}
 }
