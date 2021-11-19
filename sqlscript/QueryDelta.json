@@ -2,7 +2,7 @@
 	"name": "QueryDelta",
 	"properties": {
 		"content": {
-			"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/bronze/Customer/',\n        FORMAT = 'DELTA'\n    ) AS [result]\nWHERE  DateInserted >'2021-11-19'",
+			"query": "-- This is auto-generated code\nSELECT\n    TOP 100 CompanyName,Phone,DateInserted\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/bronze/Customer/',\n        FORMAT = 'DELTA'\n    ) AS [result]\nWHERE  CustomerID=1 Order by DateInserted Desc\n",
 			"metadata": {
 				"language": "sql"
 			},
