@@ -2,7 +2,7 @@
 	"name": "DataflowLandingBronzeParquet",
 	"properties": {
 		"folder": {
-			"name": "Child flows"
+			"name": "Child flows/Bronze"
 		},
 		"type": "MappingDataFlow",
 		"typeProperties": {

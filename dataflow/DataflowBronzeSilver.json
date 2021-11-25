@@ -1,8 +1,8 @@
 {
-	"name": "DataflowBonzeSilver",
+	"name": "DataflowBronzeSilver",
 	"properties": {
 		"folder": {
-			"name": "Child flows"
+			"name": "Child flows/Silver"
 		},
 		"type": "MappingDataFlow",
 		"typeProperties": {

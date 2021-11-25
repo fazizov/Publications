@@ -28,7 +28,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"dataflow": {
-									"referenceName": "DataflowBonzeSilver",
+									"referenceName": "DataflowBronzeSilver",
 									"type": "DataFlowReference",
 									"parameters": {
 										"SourceTableName": {

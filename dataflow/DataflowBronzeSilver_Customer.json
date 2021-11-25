@@ -1,8 +1,8 @@
 {
-	"name": "DataflowBonzeSilver_Customer_MissingValues",
+	"name": "DataflowBronzeSilver_Customer",
 	"properties": {
 		"folder": {
-			"name": "Child flows"
+			"name": "Child flows/Silver"
 		},
 		"type": "MappingDataFlow",
 		"typeProperties": {

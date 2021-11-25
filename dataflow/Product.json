@@ -1,0 +1,15 @@
+{
+	"name": "Product",
+	"properties": {
+		"folder": {
+			"name": "Child flows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [],
+			"sinks": [],
+			"transformations": [],
+			"script": ""
+		}
+	}
+}
