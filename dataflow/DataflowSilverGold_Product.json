@@ -12,21 +12,21 @@
 						"referenceName": "AzureBlobStorage1",
 						"type": "LinkedServiceReference"
 					},
-					"name": "BronzeProduct"
+					"name": "SilverProduct"
 				},
 				{
 					"linkedService": {
 						"referenceName": "AzureBlobStorage1",
 						"type": "LinkedServiceReference"
 					},
-					"name": "BronzeCategory"
+					"name": "SilverCategory"
 				},
 				{
 					"linkedService": {
 						"referenceName": "AzureBlobStorage1",
 						"type": "LinkedServiceReference"
 					},
-					"name": "BronzeModel"
+					"name": "SilverModel"
 				}
 			],
 			"sinks": [
@@ -35,7 +35,7 @@
 						"referenceName": "AzureBlobStorage1",
 						"type": "LinkedServiceReference"
 					},
-					"name": "SilverProduct"
+					"name": "GoldProduct"
 				}
 			],
 			"transformations": [
@@ -49,7 +49,7 @@
 					"name": "JoinModel"
 				}
 			],
-			"script": "source(output(\n\t\tProductID as integer,\n\t\tName as string,\n\t\tProductNumber as string,\n\t\tColor as string,\n\t\tStandardCost as decimal(19,4),\n\t\tListPrice as decimal(19,4),\n\t\tSize as string,\n\t\tWeight as decimal(8,2),\n\t\tProductCategoryID as integer,\n\t\tProductModelID as integer,\n\t\tSellStartDate as timestamp,\n\t\tSellEndDate as timestamp,\n\t\tDiscontinuedDate as timestamp,\n\t\tThumbNailPhoto as binary,\n\t\tThumbnailPhotoFileName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/Product') ~> BronzeProduct\nsource(output(\n\t\tProductCategoryID as integer,\n\t\tParentProductCategoryID as integer,\n\t\tName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/ProductCategory') ~> BronzeCategory\nsource(output(\n\t\tProductModelID as integer,\n\t\tName as string,\n\t\tCatalogDescription as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/ ProductModel') ~> BronzeModel\nBronzeProduct, BronzeCategory lookup(BronzeProduct@ProductCategoryID == BronzeCategory@ProductCategoryID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'auto')~> LookupCategory\nJoinModel select(mapColumn(\n\t\tProductID,\n\t\tName = BronzeProduct@Name,\n\t\tProductNumber,\n\t\tColor,\n\t\tStandardCost,\n\t\tListPrice,\n\t\tSize,\n\t\tWeight,\n\t\tProductCategoryID = BronzeProduct@ProductCategoryID,\n\t\tProductModelID = BronzeProduct@ProductModelID,\n\t\tSellStartDate,\n\t\tSellEndDate,\n\t\tDiscontinuedDate,\n\t\tThumbNailPhoto,\n\t\tThumbnailPhotoFileName,\n\t\trowguid = BronzeProduct@rowguid,\n\t\tModifiedDate = BronzeProduct@ModifiedDate,\n\t\tSourceFileName = BronzeProduct@SourceFileName,\n\t\tDateInserted = BronzeProduct@DateInserted,\n\t\tProductCategory = BronzeCategory@Name,\n\t\tProductModel = BronzeModel@Name\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectColumns\nLookupCategory, BronzeModel join(BronzeProduct@ProductModelID == BronzeModel@ProductModelID,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> JoinModel\nSelectColumns sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/Product',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SilverProduct"
+			"script": "source(output(\n\t\tProductID as integer,\n\t\tName as string,\n\t\tProductNumber as string,\n\t\tColor as string,\n\t\tStandardCost as decimal(19,4),\n\t\tListPrice as decimal(19,4),\n\t\tSize as string,\n\t\tWeight as decimal(8,2),\n\t\tProductCategoryID as integer,\n\t\tProductModelID as integer,\n\t\tSellStartDate as timestamp,\n\t\tSellEndDate as timestamp,\n\t\tDiscontinuedDate as timestamp,\n\t\tThumbNailPhoto as binary,\n\t\tThumbnailPhotoFileName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/Product') ~> SilverProduct\nsource(output(\n\t\tProductCategoryID as integer,\n\t\tParentProductCategoryID as integer,\n\t\tName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/ProductCategory') ~> SilverCategory\nsource(output(\n\t\tProductModelID as integer,\n\t\tName as string,\n\t\tCatalogDescription as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/ ProductModel') ~> SilverModel\nSilverProduct, SilverCategory lookup(SilverProduct@ProductCategoryID == SilverCategory@ProductCategoryID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'auto')~> LookupCategory\nJoinModel select(mapColumn(\n\t\tProductID,\n\t\tName = SilverProduct@Name,\n\t\tProductNumber,\n\t\tColor,\n\t\tStandardCost,\n\t\tListPrice,\n\t\tSize,\n\t\tWeight,\n\t\tProductCategoryID = SilverProduct@ProductCategoryID,\n\t\tProductModelID = SilverProduct@ProductModelID,\n\t\tSellStartDate,\n\t\tSellEndDate,\n\t\tDiscontinuedDate,\n\t\tThumbNailPhoto,\n\t\tThumbnailPhotoFileName,\n\t\trowguid = SilverProduct@rowguid,\n\t\tModifiedDate = SilverProduct@ModifiedDate,\n\t\tSourceFileName = SilverProduct@SourceFileName,\n\t\tDateInserted = SilverProduct@DateInserted,\n\t\tProductCategory = SilverCategory@Name,\n\t\tProductModel = SilverModel@Name\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectColumns\nLookupCategory, SilverModel join(SilverProduct@ProductModelID == SilverModel@ProductModelID,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> JoinModel\nSelectColumns sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/Product',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> GoldProduct"
 		}
 	}
 }
