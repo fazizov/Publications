@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "DataflowSilverGold_Product_copy1",
+						"referenceName": "DataflowSilverGold_Product_copy2",
 						"type": "DataFlowReference"
 					},
 					"compute": {
