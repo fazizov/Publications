@@ -1,5 +1,5 @@
 {
-	"name": "SQL script 4",
+	"name": "ValidateWatermarks",
 	"properties": {
 		"content": {
 			"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/gold/dimWatermarks/',\n        FORMAT = 'DELTA'\n    ) AS [result]\n",
