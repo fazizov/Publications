@@ -4,7 +4,7 @@
 		"nbformat": 4,
 		"nbformat_minor": 2,
 		"bigDataPool": {
-			"referenceName": "Spar31",
+			"referenceName": "MySpark",
 			"type": "BigDataPoolReference"
 		},
 		"sessionProperties": {
@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "0d3fda6e-205e-40e1-a86a-25e67b9500c3"
+				"spark.autotune.trackingId": "ecfbd421-ee3e-4a1a-b975-1dba6a7e8b76"
 			}
 		},
 		"metadata": {
@@ -31,15 +31,15 @@
 				"name": "sql"
 			},
 			"a365ComputeOptions": {
-				"id": "/subscriptions/8e21e38f-7e49-4ae8-9500-70138d5ded23/resourceGroups/Publications/providers/Microsoft.Synapse/workspaces/fa-publ-ws/bigDataPools/Spar31",
-				"name": "Spar31",
+				"id": "/subscriptions/9dd2c898-8111-4322-91d6-a039a00bd513/resourceGroups/Synapse-study/providers/Microsoft.Synapse/workspaces/synapse-study-ws/bigDataPools/MySpark",
+				"name": "MySpark",
 				"type": "Spark",
-				"endpoint": "https://fa-publ-ws.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Spar31",
+				"endpoint": "https://synapse-study-ws.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/MySpark",
 				"auth": {
 					"type": "AAD",
 					"authResource": "https://dev.azuresynapse.net"
 				},
-				"sparkVersion": "3.1",
+				"sparkVersion": "2.4",
 				"nodeCount": 10,
 				"cores": 4,
 				"memory": 28,
@@ -119,7 +119,25 @@
 					}
 				},
 				"source": [
-					""
+					"CREATE DATABASE IF NOT EXISTS gold LOCATION \"/delta/gold/\""
+				],
+				"execution_count": 1
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"CREATE TABLE IF NOT EXISTS  DimProduct USING DELTA LOCATION \"/delta/gold/DimProduct/\"; "
 				],
 				"execution_count": null
 			}
