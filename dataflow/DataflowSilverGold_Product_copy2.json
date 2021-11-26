@@ -1,0 +1,62 @@
+{
+	"name": "DataflowSilverGold_Product_copy2",
+	"properties": {
+		"folder": {
+			"name": "Child flows/Gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SilverProduct"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SilverCategory"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SilverModel"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "GoldDimWatermarks"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "GoldProduct"
+				}
+			],
+			"transformations": [
+				{
+					"name": "LookupCategory"
+				},
+				{
+					"name": "JoinModel"
+				},
+				{
+					"name": "Select"
+				}
+			],
+			"script": "source(output(\n\t\tProductID as integer,\n\t\tName as string,\n\t\tProductNumber as string,\n\t\tColor as string,\n\t\tStandardCost as decimal(19,4),\n\t\tListPrice as decimal(19,4),\n\t\tSize as string,\n\t\tWeight as decimal(8,2),\n\t\tProductCategoryID as integer,\n\t\tProductModelID as integer,\n\t\tSellStartDate as timestamp,\n\t\tSellEndDate as timestamp,\n\t\tDiscontinuedDate as timestamp,\n\t\tThumbNailPhoto as binary,\n\t\tThumbnailPhotoFileName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/Product') ~> SilverProduct\nsource(output(\n\t\tProductCategoryID as integer,\n\t\tParentProductCategoryID as integer,\n\t\tName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/ProductCategory') ~> SilverCategory\nsource(output(\n\t\tProductModelID as integer,\n\t\tName as string,\n\t\tCatalogDescription as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/ ProductModel') ~> SilverModel\nsource(output(\n\t\tTableName as string,\n\t\tLastKey as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/dimWatermarks') ~> GoldDimWatermarks\nSilverProduct, SilverCategory lookup(SilverProduct@ProductCategoryID == SilverCategory@ProductCategoryID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'auto')~> LookupCategory\nLookupCategory, SilverModel join(SilverProduct@ProductModelID == SilverModel@ProductModelID,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinModel\nJoinModel select(mapColumn(\n\t\tProductID,\n\t\tName = SilverProduct@Name,\n\t\tProductNumber,\n\t\tColor,\n\t\tStandardCost,\n\t\tListPrice,\n\t\tSize,\n\t\tWeight,\n\t\tProductCategoryID = SilverProduct@ProductCategoryID,\n\t\tProductModelID = SilverProduct@ProductModelID,\n\t\tSellStartDate,\n\t\tSellEndDate,\n\t\tDiscontinuedDate,\n\t\tThumbNailPhoto,\n\t\tThumbnailPhotoFileName,\n\t\trowguid = SilverProduct@rowguid,\n\t\tModifiedDate = SilverProduct@ModifiedDate,\n\t\tSourceFileName = SilverProduct@SourceFileName,\n\t\tDateInserted = SilverProduct@DateInserted,\n\t\tProductCategory = SilverCategory@Name,\n\t\tSourceFileName = SilverCategory@SourceFileName,\n\t\tProductModel = SilverModel@Name\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select\nSelect sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/DimProduct',\n\ttruncate:true,\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> GoldProduct"
+		}
+	}
+}
