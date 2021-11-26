@@ -1,0 +1,22 @@
+{
+	"name": "Database 1",
+	"properties": {
+		"Origin": {
+			"Type": "SPARK"
+		},
+		"Properties": {
+			"IsSyMSCDMDatabase": true
+		},
+		"Name": "Database 1",
+		"EntityType": "DATABASE",
+		"Source": {
+			"Provider": "ADLS",
+			"Location": "abfss://fa-fs@fikratstg.dfs.core.windows.net/Database 1",
+			"Properties": {
+				"FormatType": "csv",
+				"LinkedServiceName": "synapse-study-ws-WorkspaceDefaultStorage"
+			}
+		}
+	},
+	"type": "DATABASE"
+}

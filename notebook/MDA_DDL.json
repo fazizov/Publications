@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "ecfbd421-ee3e-4a1a-b975-1dba6a7e8b76"
+				"spark.autotune.trackingId": "3e235a52-2b5d-496d-97ea-078370f4a00b"
 			}
 		},
 		"metadata": {
@@ -121,7 +121,7 @@
 				"source": [
 					"CREATE DATABASE IF NOT EXISTS gold LOCATION \"/delta/gold/\""
 				],
-				"execution_count": 1
+				"execution_count": 3
 			},
 			{
 				"cell_type": "code",
@@ -137,7 +137,26 @@
 					}
 				},
 				"source": [
-					"CREATE TABLE IF NOT EXISTS  DimProduct USING DELTA LOCATION \"/delta/gold/DimProduct/\"; "
+					"CREATE TABLE IF NOT EXISTS  DimProduct USING DELTA \r\n",
+					"LOCATION \"/delta/gold/DimProduct/\"; "
+				],
+				"execution_count": 2
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					""
 				],
 				"execution_count": null
 			}
