@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "DataflowSilverGold_Product_SurrKey",
+						"referenceName": "DataflowSilverGold_Product_SCD",
 						"type": "DataFlowReference"
 					},
 					"compute": {
