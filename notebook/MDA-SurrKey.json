@@ -13,7 +13,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "de518f35-bd83-4d25-b987-34122017637a"
+				"spark.autotune.trackingId": "3ad2cb49-202d-44e2-919f-2530380da9b4"
 			}
 		},
 		"metadata": {
@@ -277,7 +277,40 @@
 					}
 				},
 				"source": [
-					"select * from dimWatermarks"
+					"Use gold;\r\n",
+					"DROP TABLE IF EXISTS DimProduct;\r\n",
+					"CREATE TABLE DimProduct (\r\n",
+					"\tProductID int,\r\n",
+					"\tName string,\r\n",
+					"\tProductNumber string,\r\n",
+					"\tColor string,\r\n",
+					"\tStandardCost float,\r\n",
+					"\tListPrice float,\r\n",
+					"\tSize string,\r\n",
+					"\tWeight float,\r\n",
+					"\tProductCategoryID int,\r\n",
+					"\tProductModelID int,\r\n",
+					"\tSellStartDate timestamp,\r\n",
+					"\tSellEndDate timestamp,\r\n",
+					"\tDiscontinuedDate timestamp,\r\n",
+					"\tThumbNailPhoto string,\r\n",
+					"\tThumbnailPhotoFileName string,\r\n",
+					"\trowguid string,\r\n",
+					"\tModifiedDate timestamp,\r\n",
+					"\tSourceFileName string,\r\n",
+					"\tDateInserted timestamp,\r\n",
+					"\tProductCategory string,\r\n",
+					"\tProductModel string,\r\n",
+					"\tRowSignature bigint,\r\n",
+					"\tEffectiveFromDate timestamp,\r\n",
+					"\tEffectiveToDate timestamp,\r\n",
+					"\tIsActive int,\r\n",
+					"\tProductKey bigint\r\n",
+					"\t)\r\n",
+					"\tUSING DELTA\r\n",
+					"\tLOCATION  '/delta/gold/DimProduct/'\r\n",
+					"\t\r\n",
+					""
 				],
 				"execution_count": null
 			}
