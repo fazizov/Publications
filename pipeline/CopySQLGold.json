@@ -21,6 +21,10 @@
 				"dependsOn": [],
 				"userProperties": [],
 				"typeProperties": {
+					"pipeline": {
+						"referenceName": "CopyPipeline_Landing_Parquet",
+						"type": "PipelineReference"
+					},
 					"waitOnCompletion": true
 				}
 			},
