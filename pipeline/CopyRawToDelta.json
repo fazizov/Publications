@@ -12,7 +12,7 @@
 						"value": "@variables('JsonTables')",
 						"type": "Expression"
 					},
-					"isSequential": true,
+					"isSequential": false,
 					"activities": [
 						{
 							"name": "DFFromJsonDelta",
@@ -68,7 +68,7 @@
 						"value": "@variables('ParquetTables')",
 						"type": "Expression"
 					},
-					"isSequential": true,
+					"isSequential": false,
 					"activities": [
 						{
 							"name": "DFFromParquetDelta",
