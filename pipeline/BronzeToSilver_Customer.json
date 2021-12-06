@@ -15,6 +15,16 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DataflowBronzeSilver_Customer",
+						"type": "DataFlowReference",
+						"parameters": {
+							"SourceTableName": "\"Customer\"",
+							"TargetTableName": "\"Customer\"",
+							"PrimaryKey": "\"CustomerID\"",
+							"TimestampColumn": "\"DateInserted\""
+						}
+					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
