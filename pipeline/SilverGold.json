@@ -19,9 +19,9 @@
 						"referenceName": "DataflowSilverGold_Product_SCD3",
 						"type": "DataFlowReference"
 					},
-					"compute": {
-						"coreCount": 8,
-						"computeType": "General"
+					"integrationRuntime": {
+						"referenceName": "IntegrationRuntime1",
+						"type": "IntegrationRuntimeReference"
 					},
 					"traceLevel": "Fine"
 				}
