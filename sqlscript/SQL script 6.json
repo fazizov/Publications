@@ -2,7 +2,7 @@
 	"name": "SQL script 6",
 	"properties": {
 		"content": {
-			"query": "-- This is auto-generated code\n-- SELECT\n--     TOP 100 *\n-- FROM\n--     OPENROWSET(\n--         BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/bronze/Product/',\n--         FORMAT = 'DELTA'\n--     ) AS [result]\n-- where ProductId<710\n-- order by dateinserted desc;\n\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/silver/Product/',\n        FORMAT = 'DELTA'\n    ) AS [result]\nwhere ProductId<710\norder by dateinserted desc",
+			"query": "-- This is auto-generated code\n-- SELECT\n--     TOP 100 *\n-- FROM\n--     OPENROWSET(\n--         BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/bronze/Product/',\n--         FORMAT = 'DELTA'\n--     ) AS [result]\n-- where ProductId<710\n-- order by dateinserted desc;\n\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/gold/DimProduct/',\n        FORMAT = 'DELTA'\n    ) AS [result]\nwhere ProductId<708\norder by dateinserted desc",
 			"metadata": {
 				"language": "sql"
 			},
