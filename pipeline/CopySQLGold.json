@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Execute Pipeline1",
+				"name": "SQL_Landing_JSON",
 				"type": "ExecutePipeline",
 				"dependsOn": [],
 				"userProperties": [],
@@ -16,7 +16,7 @@
 				}
 			},
 			{
-				"name": "Execute Pipeline2",
+				"name": "SQL_Landing_Parquet",
 				"type": "ExecutePipeline",
 				"dependsOn": [],
 				"userProperties": [],
@@ -29,17 +29,17 @@
 				}
 			},
 			{
-				"name": "Execute Pipeline3",
+				"name": "LandingBronze",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Execute Pipeline2",
+						"activity": "SQL_Landing_Parquet",
 						"dependencyConditions": [
 							"Succeeded"
 						]
 					},
 					{
-						"activity": "Execute Pipeline1",
+						"activity": "SQL_Landing_JSON",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -55,11 +55,11 @@
 				}
 			},
 			{
-				"name": "Execute Pipeline4",
+				"name": "BronzeSolver_Customer",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Execute Pipeline3",
+						"activity": "LandingBronze",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -75,11 +75,11 @@
 				}
 			},
 			{
-				"name": "Execute Pipeline6",
+				"name": "BronzeSilver",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Execute Pipeline3",
+						"activity": "LandingBronze",
 						"dependencyConditions": [
 							"Succeeded"
 						]
