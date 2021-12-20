@@ -1,5 +1,5 @@
 {
-	"name": "DataflowSilverGold_Product_SurrKeyFlowlet",
+	"name": "Product_SurrKeyFlowlet",
 	"properties": {
 		"type": "Flowlet",
 		"typeProperties": {
