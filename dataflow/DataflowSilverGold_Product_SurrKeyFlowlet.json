@@ -119,7 +119,7 @@
 				"GoldDimWatermarks filter(TableName==\"DimProduct\") ~> Filter1",
 				"Select keyGenerate(output(ProductKey as long),",
 				"     startAt: 1L) ~> SurrogateKey1",
-				"SurrogateKey1 derive(ProductKey = ProductKey+ toInteger(LastKeyCache#outputs()[1].LastKey)) ~> CalculateKey",
+				"SurrogateKey1 derive(ProductKey = ProductKey) ~> CalculateKey",
 				"CalculateKey derive(TableName = \"DimProduct\") ~> AddTableName",
 				"AddTableName aggregate(groupBy(TableName),",
 				"     LastKey = max(ProductKey)) ~> CalculateMaxKey",
