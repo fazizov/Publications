@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "DataflowSilverGold_Product_SCD3",
+						"referenceName": "DataflowSilverGold_Product_SCD",
 						"type": "DataFlowReference"
 					},
 					"integrationRuntime": {

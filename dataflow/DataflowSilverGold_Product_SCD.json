@@ -1,5 +1,5 @@
 {
-	"name": "DataflowSilverGold_Product_SCD3",
+	"name": "DataflowSilverGold_Product_SCD",
 	"properties": {
 		"folder": {
 			"name": "Child flows/Gold"
