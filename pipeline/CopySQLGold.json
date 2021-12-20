@@ -55,7 +55,7 @@
 				}
 			},
 			{
-				"name": "BronzeSolver_Customer",
+				"name": "BronzeSilver_Customer",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
@@ -89,6 +89,32 @@
 				"typeProperties": {
 					"pipeline": {
 						"referenceName": "BronzeToSilver",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "SilverGold_Product",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "BronzeSilver",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "BronzeSilver_Customer",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "SilverGold_Product",
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true
