@@ -2,7 +2,7 @@
 	"name": "SQL script 6",
 	"properties": {
 		"content": {
-			"query": "SELECT \n    TOP 100 ProductID,Name,RowSignature,EffectiveFromDate,EffectiveToDate,IsActive,ProductKey\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/gold/DimProduct/',\n        FORMAT = 'DELTA'\n    ) AS [result]\nwhere ProductId<707\norder by ProductId,dateinserted desc",
+			"query": "SELECT \n    TOP 100 ProductID,Name,RowSignature,EffectiveFromDate,EffectiveToDate,IsActive,ProductKey\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/gold/DimProduct/',\n        FORMAT = 'DELTA'\n    ) AS [result]\nwhere ProductId<707 order by ProductId,dateinserted desc",
 			"metadata": {
 				"language": "sql"
 			},
