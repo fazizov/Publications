@@ -1,5 +1,5 @@
 {
-	"name": "flowlet1",
+	"name": "Deduplication_Flowlet",
 	"properties": {
 		"type": "Flowlet",
 		"typeProperties": {
@@ -14,6 +14,9 @@
 				},
 				{
 					"name": "input1"
+				},
+				{
+					"name": "output1"
 				}
 			],
 			"scriptLines": [
@@ -25,7 +28,8 @@
 				"input1 window(over(PrimaryKey = IDColumn),",
 				"     asc(OrderColum, true),",
 				"     RowNum = rowNumber()) ~> Window1",
-				"Window1 filter(RowNum==1) ~> Filter1"
+				"Window1 filter(RowNum==1) ~> Filter1",
+				"Filter1 output() ~> output1"
 			]
 		}
 	}
