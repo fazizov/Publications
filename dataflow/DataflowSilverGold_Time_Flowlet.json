@@ -1,0 +1,39 @@
+{
+	"name": "DataflowSilverGold_Time_Flowlet",
+	"properties": {
+		"type": "Flowlet",
+		"typeProperties": {
+			"sources": [],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "DerivedColumn1"
+				},
+				{
+					"name": "Window1"
+				},
+				{
+					"name": "input1"
+				},
+				{
+					"name": "output1"
+				}
+			],
+			"scriptLines": [
+				"input(output(",
+				"          DateColumn as timestamp",
+				"     ),",
+				"     order: 0) ~> input1",
+				"input1 derive(DateID = toLong(toString(DateColumn,'yyyyMMddhhmm')),",
+				"          Year = year(DateColumn),",
+				"          Month = month(DateColumn),",
+				"          DayOfMonth = dayOfMonth(DateColumn),",
+				"          WeekOfYear = weekOfYear(DateColumn)) ~> DerivedColumn1",
+				"DerivedColumn1 window(over(DateID),",
+				"     asc(DateColumn, true),",
+				"     RowNum = denseRank()) ~> Window1",
+				"Window1 output() ~> output1"
+			]
+		}
+	}
+}
