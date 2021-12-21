@@ -33,6 +33,7 @@
 				"          DayOfMonth = dayOfMonth(DateColumn),",
 				"          WeekOfYear = weekOfYear(DateColumn)) ~> DerivedColumn1",
 				"DerivedColumn1 window(over(DateID),",
+				"     asc(DateColumn, true),",
 				"     RowNum = rowNumber()) ~> Window1",
 				"Window1 filter(RowNum==1) ~> Filter1",
 				"Filter1 output() ~> output1"
