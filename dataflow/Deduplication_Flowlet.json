@@ -24,8 +24,8 @@
 			],
 			"scriptLines": [
 				"input(output(",
-				"          IDColumn as integer,",
-				"          OrderColum as string",
+				"          IDColumn as long,",
+				"          OrderColum as timestamp",
 				"     ),",
 				"     order: 0) ~> input1",
 				"input1 window(over(PrimaryKey = IDColumn),",
