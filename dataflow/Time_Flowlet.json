@@ -24,7 +24,7 @@
 				"input1 derive(DateID = toLong(toString(DateColumn,'yyyyMMdd')),",
 				"          Date = toDate(DateColumn),",
 				"          Year = year(DateColumn),",
-				"          Quarter = ERROR_FUNCTION('ceil((month(DateColumn)/3)'),",
+				"          Quarter = ceil(month(DateColumn)/3),",
 				"          Month = month(DateColumn),",
 				"          DayOfMonth = dayOfMonth(DateColumn),",
 				"          WeekOfYear = weekOfYear(DateColumn)) ~> DerivedColumn1",
