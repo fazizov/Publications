@@ -13,6 +13,9 @@
 					"name": "Window1"
 				},
 				{
+					"name": "Filter1"
+				},
+				{
 					"name": "input1"
 				},
 				{
@@ -31,8 +34,9 @@
 				"          WeekOfYear = weekOfYear(DateColumn)) ~> DerivedColumn1",
 				"DerivedColumn1 window(over(DateID),",
 				"     asc(DateColumn, true),",
-				"     RowNum = denseRank()) ~> Window1",
-				"Window1 output() ~> output1"
+				"     RowNum = rowNumber()) ~> Window1",
+				"Window1 filter(RowNum==1) ~> Filter1",
+				"Filter1 output() ~> output1"
 			]
 		}
 	}
