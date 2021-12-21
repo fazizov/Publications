@@ -1,5 +1,5 @@
 {
-	"name": "DataflowSilverGold_Time_Flowlet",
+	"name": "Time_Flowlet",
 	"properties": {
 		"type": "Flowlet",
 		"typeProperties": {
