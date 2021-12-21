@@ -22,6 +22,7 @@
 				"     ),",
 				"     order: 0) ~> input1",
 				"input1 derive(DateID = toLong(toString(DateColumn,'yyyyMMdd')),",
+				"          Date = toDate(DateColumn),",
 				"          Year = year(DateColumn),",
 				"          Quarter = floor(month(DateColumn)/4)+1,",
 				"          Month = month(DateColumn),",
