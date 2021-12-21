@@ -10,15 +10,6 @@
 					"name": "DerivedColumn1"
 				},
 				{
-					"name": "Window1"
-				},
-				{
-					"name": "Filter1"
-				},
-				{
-					"name": "Select1"
-				},
-				{
 					"name": "input1"
 				},
 				{
@@ -36,22 +27,7 @@
 				"          Month = month(DateColumn),",
 				"          DayOfMonth = dayOfMonth(DateColumn),",
 				"          WeekOfYear = weekOfYear(DateColumn)) ~> DerivedColumn1",
-				"DerivedColumn1 window(over(DateID),",
-				"     asc(DateColumn, true),",
-				"     RowNum = rowNumber()) ~> Window1",
-				"Window1 filter(RowNum==1) ~> Filter1",
-				"Filter1 select(mapColumn(",
-				"          DateID,",
-				"          Date = DateColumn,",
-				"          Year,",
-				"          Quarter,",
-				"          Month,",
-				"          WeekOfYear,",
-				"          DayOfMonth",
-				"     ),",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> Select1",
-				"Select1 output() ~> output1"
+				"DerivedColumn1 output() ~> output1"
 			]
 		}
 	}
