@@ -13,6 +13,9 @@
 					"name": "Filter1"
 				},
 				{
+					"name": "Select1"
+				},
+				{
 					"name": "input1"
 				},
 				{
@@ -29,7 +32,13 @@
 				"     asc(OrderColum, true),",
 				"     RowNum = rowNumber()) ~> Window1",
 				"Window1 filter(RowNum==1) ~> Filter1",
-				"Filter1 output() ~> output1"
+				"Filter1 select(mapColumn(",
+				"          IDColumn,",
+				"          OrderColum",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> Select1",
+				"Select1 output() ~> output1"
 			]
 		}
 	}
