@@ -30,7 +30,7 @@
 				"          DateColumn as timestamp",
 				"     ),",
 				"     order: 0) ~> input1",
-				"input1 derive(DateID = toLong(toString(DateColumn,'yyyyMMddhhmm')),",
+				"input1 derive(DateID = toLong(toString(DateColumn,'yyyyMMdd')),",
 				"          Year = year(DateColumn),",
 				"          Quarter = floor(month(DateColumn)/4)+1,",
 				"          Month = month(DateColumn),",
