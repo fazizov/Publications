@@ -18,21 +18,28 @@
 			"sinks": [],
 			"transformations": [
 				{
-					"name": "Flowlet1",
+					"name": "Flowlet2",
 					"flowlet": {
 						"referenceName": "DataflowSilverGold_Time_Flowlet",
 						"type": "DataFlowReference"
 					}
 				},
 				{
-					"name": "Flowlet2",
+					"name": "Flowlet3",
+					"flowlet": {
+						"referenceName": "DataflowSilverGold_Time_Flowlet",
+						"type": "DataFlowReference"
+					}
+				},
+				{
+					"name": "Flowlet4",
 					"flowlet": {
 						"referenceName": "DataflowSilverGold_Time_Flowlet",
 						"type": "DataFlowReference"
 					}
 				}
 			],
-			"script": "source(output(\n\t\tSalesOrderID as integer,\n\t\tRevisionNumber as integer,\n\t\tOrderDate as timestamp,\n\t\tDueDate as timestamp,\n\t\tShipDate as timestamp,\n\t\tStatus as integer,\n\t\tOnlineOrderFlag as boolean,\n\t\tSalesOrderNumber as string,\n\t\tPurchaseOrderNumber as string,\n\t\tAccountNumber as string,\n\t\tCustomerID as integer,\n\t\tShipToAddressID as integer,\n\t\tBillToAddressID as integer,\n\t\tShipMethod as string,\n\t\tCreditCardApprovalCode as string,\n\t\tSubTotal as decimal(19,4),\n\t\tTaxAmt as decimal(19,4),\n\t\tFreight as decimal(19,4),\n\t\tTotalDue as decimal(19,4),\n\t\tComment as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/SalesOrderHeader') ~> FactSalesHeader\nFlowlet2@output1 compose(mapColumn(\n\t\tDateColumn\n\t),\n\tcomposition: 'DataflowSilverGold_Time_Flowlet') ~> Flowlet1@(output1)\nFactSalesHeader compose(mapColumn(\n\t\tDateColumn = DueDate\n\t),\n\tcomposition: 'DataflowSilverGold_Time_Flowlet') ~> Flowlet2@(output1)"
+			"script": "source(output(\n\t\tSalesOrderID as integer,\n\t\tRevisionNumber as integer,\n\t\tOrderDate as timestamp,\n\t\tDueDate as timestamp,\n\t\tShipDate as timestamp,\n\t\tStatus as integer,\n\t\tOnlineOrderFlag as boolean,\n\t\tSalesOrderNumber as string,\n\t\tPurchaseOrderNumber as string,\n\t\tAccountNumber as string,\n\t\tCustomerID as integer,\n\t\tShipToAddressID as integer,\n\t\tBillToAddressID as integer,\n\t\tShipMethod as string,\n\t\tCreditCardApprovalCode as string,\n\t\tSubTotal as decimal(19,4),\n\t\tTaxAmt as decimal(19,4),\n\t\tFreight as decimal(19,4),\n\t\tTotalDue as decimal(19,4),\n\t\tComment as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/SalesOrderHeader') ~> FactSalesHeader\nFactSalesHeader compose(mapColumn(\n\t\tDateColumn = DueDate\n\t),\n\tcomposition: 'DataflowSilverGold_Time_Flowlet') ~> Flowlet2@(output1)\nFactSalesHeader compose(mapColumn(\n\t\tDateColumn = ShipDate\n\t),\n\tcomposition: 'DataflowSilverGold_Time_Flowlet') ~> Flowlet3@(output1)\nFactSalesHeader compose(mapColumn(\n\t\tDateColumn = OrderDate\n\t),\n\tcomposition: 'DataflowSilverGold_Time_Flowlet') ~> Flowlet4@(output1)"
 		}
 	}
 }
