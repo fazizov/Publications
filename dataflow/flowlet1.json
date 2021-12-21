@@ -1,0 +1,32 @@
+{
+	"name": "flowlet1",
+	"properties": {
+		"type": "Flowlet",
+		"typeProperties": {
+			"sources": [],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "Window1"
+				},
+				{
+					"name": "Filter1"
+				},
+				{
+					"name": "input1"
+				}
+			],
+			"scriptLines": [
+				"input(output(",
+				"          IDColumn as integer,",
+				"          OrderColum as string",
+				"     ),",
+				"     order: 0) ~> input1",
+				"input1 window(over(PrimaryKey = IDColumn),",
+				"     asc(OrderColum, true),",
+				"     RowNum = rowNumber()) ~> Window1",
+				"Window1 filter(RowNum==1) ~> Filter1"
+			]
+		}
+	}
+}
