@@ -1,0 +1,41 @@
+{
+	"name": "DataflowSilverGold_Product_SurrKey1",
+	"properties": {
+		"type": "Flowlet",
+		"typeProperties": {
+			"sources": [],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "AddTableName"
+				},
+				{
+					"name": "CalculateMaxKey"
+				},
+				{
+					"name": "AlterRow"
+				},
+				{
+					"name": "input1"
+				},
+				{
+					"name": "TargetWatermark"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     pTableName as string",
+				"}",
+				"input(output(",
+				"          IdColumn as long",
+				"     ),",
+				"     order: 0) ~> input1",
+				"input1 derive(TableName = $pTableName) ~> AddTableName",
+				"AddTableName aggregate(groupBy(TableName),",
+				"     LastKey = max(IdColumn)) ~> CalculateMaxKey",
+				"CalculateMaxKey alterRow(updateIf(TableName==\"DimProduct\")) ~> AlterRow",
+				"AlterRow output() ~> TargetWatermark"
+			]
+		}
+	}
+}
