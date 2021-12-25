@@ -3,7 +3,11 @@
 	"properties": {
 		"type": "Flowlet",
 		"typeProperties": {
-			"sources": [],
+			"sources": [
+				{
+					"name": "source1"
+				}
+			],
 			"sinks": [],
 			"transformations": [
 				{
@@ -28,6 +32,13 @@
 				"          OrderColum as timestamp",
 				"     ),",
 				"     order: 0) ~> input1",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     store: 'synapse',",
+				"     databaseType: 'spark',",
+				"     format: 'table',",
+				"     database: '',",
+				"     tableName: '') ~> source1",
 				"input1 window(over(PrimaryKey = IDColumn),",
 				"     asc(OrderColum, true),",
 				"     RowNum = rowNumber()) ~> Window1",
