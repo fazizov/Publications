@@ -114,7 +114,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
-						"referenceName": "SilverGold_Product",
+						"referenceName": "SilverGold",
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true
