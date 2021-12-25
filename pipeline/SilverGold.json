@@ -1,9 +1,33 @@
 {
-	"name": "SilverGold_Product",
+	"name": "SilverGold",
 	"properties": {
 		"activities": [
 			{
-				"name": "Product",
+				"name": "DimProduct",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DataflowSilverGold_Product_SCD_Final",
+						"type": "DataFlowReference"
+					},
+					"integrationRuntime": {
+						"referenceName": "IntegrationRuntime1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "DimTime",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
