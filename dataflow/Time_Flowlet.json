@@ -1,6 +1,9 @@
 {
 	"name": "Time_Flowlet",
 	"properties": {
+		"folder": {
+			"name": "Child flows/Gold/Flowlets"
+		},
 		"type": "Flowlet",
 		"typeProperties": {
 			"sources": [],
