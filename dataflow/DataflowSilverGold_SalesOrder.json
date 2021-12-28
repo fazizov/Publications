@@ -1,0 +1,23 @@
+{
+	"name": "DataflowSilverGold_SalesOrder",
+	"properties": {
+		"folder": {
+			"name": "Child flows/Gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SalesOrderHeaderSilver"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/SalesOrderHeader') ~> SalesOrderHeaderSilver"
+		}
+	}
+}
