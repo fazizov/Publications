@@ -1,0 +1,38 @@
+{
+	"name": "Dataflow2",
+	"properties": {
+		"folder": {
+			"name": "Child flows/Silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SalesOrderDetailSilver"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Window1"
+				},
+				{
+					"name": "Filter1"
+				}
+			],
+			"script": "source(output(\n\t\tSalesOrderID as integer,\n\t\tSalesOrderDetailID as integer,\n\t\tOrderQty as integer,\n\t\tProductID as integer,\n\t\tUnitPrice as decimal(19,4),\n\t\tUnitPriceDiscount as decimal(19,4),\n\t\tLineTotal as decimal(38,6),\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/bronze/SalesOrderDetail') ~> SalesOrderDetailSilver\nSalesOrderDetailSilver window(over(SalesOrderID,\n\t\tSalesOrderDetailID),\n\tdesc(DateInserted, true),\n\tRowVersion = rowNumber()) ~> Window1\nWindow1 filter(RowVersion==1) ~> Filter1\nFilter1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/SalesOrderDetail',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sink1"
+		}
+	}
+}
