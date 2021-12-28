@@ -1,0 +1,44 @@
+{
+	"name": "DataflowBronzeSilver_SalesOrderHeader",
+	"properties": {
+		"folder": {
+			"name": "Child flows/Silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SalesOrderHeaderBronze"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SalesOrderHeaderSilver"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Window1"
+				},
+				{
+					"name": "Filter1"
+				},
+				{
+					"name": "FilterTimeRange"
+				},
+				{
+					"name": "Select1"
+				}
+			],
+			"script": "parameters{\n\tWindowStart as timestamp (toTimestamp(\"2008-06-08\",\"yyyy-MM-dd\")),\n\tWndowEnd as timestamp (toTimestamp(\"2008-06-09\",\"yyyy-MM-dd\"))\n}\nsource(output(\n\t\tSalesOrderID as integer,\n\t\tRevisionNumber as integer,\n\t\tOrderDate as timestamp,\n\t\tDueDate as timestamp,\n\t\tShipDate as timestamp,\n\t\tStatus as integer,\n\t\tOnlineOrderFlag as boolean,\n\t\tSalesOrderNumber as string,\n\t\tPurchaseOrderNumber as string,\n\t\tAccountNumber as string,\n\t\tCustomerID as integer,\n\t\tShipToAddressID as integer,\n\t\tBillToAddressID as integer,\n\t\tShipMethod as string,\n\t\tCreditCardApprovalCode as string,\n\t\tSubTotal as decimal(19,4),\n\t\tTaxAmt as decimal(19,4),\n\t\tFreight as decimal(19,4),\n\t\tTotalDue as decimal(19,4),\n\t\tComment as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/bronze/SalesOrderHeader') ~> SalesOrderHeaderBronze\nFilterTimeRange window(over(SalesOrderID),\n\tdesc(ModifiedDate, true),\n\tRowVersion = rowNumber()) ~> Window1\nWindow1 filter(RowVersion==1) ~> Filter1\nSalesOrderHeaderBronze filter(ModifiedDate>=$WindowStart && ModifiedDate <$WndowEnd) ~> FilterTimeRange\nFilter1 select(mapColumn(\n\t\tSalesOrderID,\n\t\tSalesOrderDetailID,\n\t\tOrderQty,\n\t\tProductID,\n\t\tUnitPrice,\n\t\tUnitPriceDiscount,\n\t\tLineTotal,\n\t\trowguid,\n\t\tModifiedDate,\n\t\tSourceFileName,\n\t\tDateInserted\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nSelect1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/SalesOrderHeader',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SalesOrderHeaderSilver"
+		}
+	}
+}
