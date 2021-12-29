@@ -20,7 +20,7 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"WindowStart": {
-								"value": "getPastTime(1,'Day')",
+								"value": "@addDays(utcnow(),-1)",
 								"type": "Expression"
 							},
 							"WndowEnd": {
