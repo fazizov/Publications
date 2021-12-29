@@ -93,12 +93,6 @@
 						"destination": " ProductModel",
 						"primarykey": "ProductModelID",
 						"timestamp": "DateInserted"
-					},
-					{
-						"source": "SalesOrderHeader",
-						"destination": "SalesOrderHeader",
-						"primarykey": "SalesOrderID",
-						"timestamp": "DateInserted"
 					}
 				]
 			}
