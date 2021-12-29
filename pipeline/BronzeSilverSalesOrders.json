@@ -1,0 +1,45 @@
+{
+	"name": "BronzeSilverSalesOrders",
+	"properties": {
+		"activities": [
+			{
+				"name": "DataflowSilverGold_Product_SurrKey",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DataflowBronzeSilver_SalesOrder",
+						"type": "DataFlowReference",
+						"parameters": {
+							"WindowStart": {
+								"value": "getPastTime(1,'Day')",
+								"type": "Expression"
+							},
+							"WndowEnd": {
+								"value": "utcnow()",
+								"type": "Expression"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"folder": {
+			"name": "Silver"
+		},
+		"annotations": []
+	}
+}
