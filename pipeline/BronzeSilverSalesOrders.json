@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "DataflowSilverGold_Product_SurrKey",
+				"name": "DataflowBronzeSilverSalesOrders",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
