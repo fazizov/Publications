@@ -19,14 +19,8 @@
 						"referenceName": "DataflowBronzeSilver_SalesOrder",
 						"type": "DataFlowReference",
 						"parameters": {
-							"WindowStart": {
-								"value": "@addDays(utcNow(),-1)",
-								"type": "Expression"
-							},
-							"WndowEnd": {
-								"value": "utcnow()",
-								"type": "Expression"
-							}
+							"WindowStart": "addDays(currentTimestamp(),-1)",
+							"WndowEnd": "currentTimestamp()"
 						}
 					},
 					"compute": {
