@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 8",
+	"properties": {
+		"content": {
+			"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/bronze/SalesOrderHeader/',\n        FORMAT = 'DELTA'\n    ) AS [result]\nwhere SalesOrderID<71782    \norder by SalesOrderID,DateInserted desc",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

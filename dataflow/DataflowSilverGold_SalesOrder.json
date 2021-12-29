@@ -13,11 +13,18 @@
 						"type": "LinkedServiceReference"
 					},
 					"name": "SalesOrderHeaderSilver"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "CustomerGold"
 				}
 			],
 			"sinks": [],
 			"transformations": [],
-			"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/SalesOrderHeader') ~> SalesOrderHeaderSilver"
+			"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/SalesOrderHeader') ~> SalesOrderHeaderSilver\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/DimProduct') ~> CustomerGold"
 		}
 	}
 }
