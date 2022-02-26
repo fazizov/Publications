@@ -7,6 +7,10 @@
 			"pipelineReference": {
 				"referenceName": "BronzeSilverSalesOrders",
 				"type": "PipelineReference"
+			},
+			"parameters": {
+				"MyStartDate": "trigger().outputs.windowStartTime",
+				"MyEndDate": "trigger().outputs.windowEndTime"
 			}
 		},
 		"type": "TumblingWindowTrigger",

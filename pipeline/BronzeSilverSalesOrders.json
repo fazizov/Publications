@@ -20,11 +20,11 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"WindowStart": {
-								"value": "trigger().outputs.windowStartTime",
+								"value": "@pipeline().parameters.MyStartDate",
 								"type": "Expression"
 							},
 							"WndowEnd": {
-								"value": "trigger().outputs.windowEndTime",
+								"value": "@pipeline().parameters.MyEndDate",
 								"type": "Expression"
 							}
 						}
