@@ -1,0 +1,3799 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"type": "string",
+			"metadata": "Workspace name",
+			"defaultValue": "synapse-study-ws"
+		},
+		"AzureBlobStorage1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+		},
+		"AzureBlobStorage2_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage2'"
+		},
+		"AzureSqlDatabase1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
+		},
+		"synapse-study-ws-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'synapse-study-ws-WorkspaceDefaultSqlServer'"
+		},
+		"synapse-study-ws-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://fikratstg.dfs.core.windows.net"
+		}
+	},
+	"variables": {
+		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/BronzeSilverSalesOrders')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "DataflowBronzeSilverSalesOrders",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DataflowBronzeSilver_SalesOrder",
+								"type": "DataFlowReference",
+								"parameters": {
+									"WindowStart": {
+										"value": "trigger().outputs.windowStartTime",
+										"type": "Expression"
+									},
+									"WndowEnd": {
+										"value": "trigger().outputs.windowEndTime",
+										"type": "Expression"
+									}
+								},
+								"datasetParameters": {
+									"SalesOrderDetailBronze": {},
+									"SalesOrderHeaderBronze": {},
+									"SalesOrderDetailSilver": {},
+									"SalesOrderHeaderSilver": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"folder": {
+					"name": "Silver"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_SalesOrder')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/BronzeSilverSalesOrders_Daily')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "DataflowBronzeSilverSalesOrders",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DataflowBronzeSilver_SalesOrder",
+								"type": "DataFlowReference",
+								"parameters": {
+									"WindowStart": "addDays(currentTimestamp(),-1)",
+									"WndowEnd": "currentTimestamp()"
+								},
+								"datasetParameters": {
+									"SalesOrderDetailBronze": {},
+									"SalesOrderHeaderBronze": {},
+									"SalesOrderDetailSilver": {},
+									"SalesOrderHeaderSilver": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"folder": {
+					"name": "Silver"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_SalesOrder')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/BronzeSilverSalesOrders_Historical')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "DataflowBronzeSilverSalesOrders",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DataflowBronzeSilver_SalesOrder",
+								"type": "DataFlowReference",
+								"parameters": {
+									"WindowStart": "toTimestamp(\"1900-01-01\",\"yyyy-MM-dd\")",
+									"WndowEnd": "currentTimestamp()"
+								},
+								"datasetParameters": {
+									"SalesOrderDetailBronze": {},
+									"SalesOrderHeaderBronze": {},
+									"SalesOrderDetailSilver": {},
+									"SalesOrderHeaderSilver": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"folder": {
+					"name": "Silver"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_SalesOrder')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/BronzeToSilver')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEach_Table",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('Tables')",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "DFFromBronzeSilver",
+									"type": "ExecuteDataFlow",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "1.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataflow": {
+											"referenceName": "DataflowBronzeSilver",
+											"type": "DataFlowReference",
+											"parameters": {
+												"SourceTableName": {
+													"value": "'@{item().source}'",
+													"type": "Expression"
+												},
+												"TargetTableName": {
+													"value": "'@{item().destination}'",
+													"type": "Expression"
+												},
+												"PrimaryKey": {
+													"value": "'@{item().primarykey}'",
+													"type": "Expression"
+												},
+												"TimestampColumn": {
+													"value": "'@{item().timestamp}'",
+													"type": "Expression"
+												}
+											},
+											"datasetParameters": {
+												"BronzeDelta": {},
+												"SilverDelta": {}
+											}
+										},
+										"staging": {},
+										"integrationRuntime": {
+											"referenceName": "IntegrationRuntime1",
+											"type": "IntegrationRuntimeReference"
+										},
+										"traceLevel": "Fine"
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"variables": {
+					"Tables": {
+						"type": "Array",
+						"defaultValue": [
+							{
+								"source": "Address",
+								"destination": "Address",
+								"primarykey": "AddressID",
+								"timestamp": "DateInserted"
+							},
+							{
+								"source": "Product",
+								"destination": "Product",
+								"primarykey": "ProductID",
+								"timestamp": "DateInserted"
+							},
+							{
+								"source": "ProductCategory",
+								"destination": "ProductCategory",
+								"primarykey": "ProductCategoryID",
+								"timestamp": "DateInserted"
+							},
+							{
+								"source": "ProductDescription",
+								"destination": "ProductDescription",
+								"primarykey": "ProductDescriptionID",
+								"timestamp": "DateInserted"
+							},
+							{
+								"source": "ProductModel",
+								"destination": " ProductModel",
+								"primarykey": "ProductModelID",
+								"timestamp": "DateInserted"
+							}
+						]
+					}
+				},
+				"folder": {
+					"name": "Silver"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-10-24T00:22:45Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/IntegrationRuntime1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/BronzeToSilver_Customer')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "BronzeToSilver_Customer",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DataflowBronzeSilver_Customer",
+								"type": "DataFlowReference",
+								"parameters": {
+									"SourceTableName": "\"Customer\"",
+									"TargetTableName": "\"Customer\"",
+									"PrimaryKey": "\"CustomerID\"",
+									"TimestampColumn": "\"DateInserted\""
+								},
+								"datasetParameters": {
+									"BronzeDelta": {},
+									"SilverDelta": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"folder": {
+					"name": "Silver"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_Customer')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/CopyPipeline_Landing_Json')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEach_r5x",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('cw_items')",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Copy_r5x",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [
+										{
+											"name": "Source",
+											"value": "SalesLT.@{item().source.table}"
+										},
+										{
+											"name": "Destination",
+											"value": "syn-fs/raw/json/@{item().destination.fileName}"
+										}
+									],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "JsonSink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											},
+											"formatSettings": {
+												"type": "JsonWriteSettings",
+												"filePattern": "setOfObjects"
+											}
+										},
+										"enableStaging": false,
+										"validateDataConsistency": false,
+										"translator": {
+											"value": "@item().copyActivity.translator",
+											"type": "Expression"
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "SourceDataset_r5x",
+											"type": "DatasetReference",
+											"parameters": {
+												"cw_table": "@item().source.table"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DestinationDataset_r5x",
+											"type": "DatasetReference",
+											"parameters": {
+												"cw_fileName": "@item().destination.fileName"
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"variables": {
+					"cw_items": {
+						"type": "Array",
+						"defaultValue": [
+							{
+								"source": {
+									"table": "Address"
+								},
+								"destination": {
+									"fileName": "SalesLTAddress.json"
+								},
+								"copyActivity": {
+									"translator": {
+										"type": "TabularTranslator",
+										"mappings": [
+											{
+												"source": {
+													"name": "AddressID",
+													"type": "Int32"
+												},
+												"sink": {
+													"path": "$['AddressID']"
+												}
+											},
+											{
+												"source": {
+													"name": "AddressLine1",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['AddressLine1']"
+												}
+											},
+											{
+												"source": {
+													"name": "AddressLine2",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['AddressLine2']"
+												}
+											},
+											{
+												"source": {
+													"name": "City",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['City']"
+												}
+											},
+											{
+												"source": {
+													"name": "StateProvince",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['StateProvince']"
+												}
+											},
+											{
+												"source": {
+													"name": "CountryRegion",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['CountryRegion']"
+												}
+											},
+											{
+												"source": {
+													"name": "PostalCode",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['PostalCode']"
+												}
+											},
+											{
+												"source": {
+													"name": "rowguid",
+													"type": "Guid"
+												},
+												"sink": {
+													"path": "$['rowguid']"
+												}
+											},
+											{
+												"source": {
+													"name": "ModifiedDate",
+													"type": "DateTime"
+												},
+												"sink": {
+													"path": "$['ModifiedDate']"
+												}
+											}
+										]
+									}
+								}
+							},
+							{
+								"source": {
+									"table": "Customer"
+								},
+								"destination": {
+									"fileName": "SalesLTCustomer.json"
+								},
+								"copyActivity": {
+									"translator": {
+										"type": "TabularTranslator",
+										"mappings": [
+											{
+												"source": {
+													"name": "CustomerID",
+													"type": "Int32"
+												},
+												"sink": {
+													"path": "$['CustomerID']"
+												}
+											},
+											{
+												"source": {
+													"name": "NameStyle",
+													"type": "Boolean"
+												},
+												"sink": {
+													"path": "$['NameStyle']"
+												}
+											},
+											{
+												"source": {
+													"name": "Title",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['Title']"
+												}
+											},
+											{
+												"source": {
+													"name": "FirstName",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['FirstName']"
+												}
+											},
+											{
+												"source": {
+													"name": "MiddleName",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['MiddleName']"
+												}
+											},
+											{
+												"source": {
+													"name": "LastName",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['LastName']"
+												}
+											},
+											{
+												"source": {
+													"name": "Suffix",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['Suffix']"
+												}
+											},
+											{
+												"source": {
+													"name": "CompanyName",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['CompanyName']"
+												}
+											},
+											{
+												"source": {
+													"name": "SalesPerson",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['SalesPerson']"
+												}
+											},
+											{
+												"source": {
+													"name": "EmailAddress",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['EmailAddress']"
+												}
+											},
+											{
+												"source": {
+													"name": "Phone",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['Phone']"
+												}
+											},
+											{
+												"source": {
+													"name": "PasswordHash",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['PasswordHash']"
+												}
+											},
+											{
+												"source": {
+													"name": "PasswordSalt",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['PasswordSalt']"
+												}
+											},
+											{
+												"source": {
+													"name": "rowguid",
+													"type": "Guid"
+												},
+												"sink": {
+													"path": "$['rowguid']"
+												}
+											},
+											{
+												"source": {
+													"name": "ModifiedDate",
+													"type": "DateTime"
+												},
+												"sink": {
+													"path": "$['ModifiedDate']"
+												}
+											}
+										]
+									}
+								}
+							},
+							{
+								"source": {
+									"table": "CustomerAddress"
+								},
+								"destination": {
+									"fileName": "SalesLTCustomerAddress.json"
+								},
+								"copyActivity": {
+									"translator": {
+										"type": "TabularTranslator",
+										"mappings": [
+											{
+												"source": {
+													"name": "CustomerID",
+													"type": "Int32"
+												},
+												"sink": {
+													"path": "$['CustomerID']"
+												}
+											},
+											{
+												"source": {
+													"name": "AddressID",
+													"type": "Int32"
+												},
+												"sink": {
+													"path": "$['AddressID']"
+												}
+											},
+											{
+												"source": {
+													"name": "AddressType",
+													"type": "String"
+												},
+												"sink": {
+													"path": "$['AddressType']"
+												}
+											},
+											{
+												"source": {
+													"name": "rowguid",
+													"type": "Guid"
+												},
+												"sink": {
+													"path": "$['rowguid']"
+												}
+											},
+											{
+												"source": {
+													"name": "ModifiedDate",
+													"type": "DateTime"
+												},
+												"sink": {
+													"path": "$['ModifiedDate']"
+												}
+											}
+										]
+									}
+								}
+							}
+						]
+					}
+				},
+				"folder": {
+					"name": "Landing"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-10-23T22:23:00Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/SourceDataset_r5x')]",
+				"[concat(variables('workspaceId'), '/datasets/DestinationDataset_r5x')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/CopyPipeline_Landing_Parquet')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEach_al8",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('cw_items')",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Copy_al8",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [
+										{
+											"name": "Source",
+											"value": "SalesLT.@{item().source.table}"
+										},
+										{
+											"name": "Destination",
+											"value": "syn-fs/raw/parquet/@{item().destination.fileName}"
+										}
+									],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"validateDataConsistency": false
+									},
+									"inputs": [
+										{
+											"referenceName": "SourceDataset_al8",
+											"type": "DatasetReference",
+											"parameters": {
+												"cw_table": "@item().source.table"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DestinationDataset_al8",
+											"type": "DatasetReference",
+											"parameters": {
+												"cw_fileName": "@item().destination.fileName"
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"variables": {
+					"cw_items": {
+						"type": "Array",
+						"defaultValue": [
+							{
+								"source": {
+									"table": "Product"
+								},
+								"destination": {
+									"fileName": "SalesLTProduct.parquet"
+								}
+							},
+							{
+								"source": {
+									"table": "ProductCategory"
+								},
+								"destination": {
+									"fileName": "SalesLTProductCategory.parquet"
+								}
+							},
+							{
+								"source": {
+									"table": "ProductDescription"
+								},
+								"destination": {
+									"fileName": "SalesLTProductDescription.parquet"
+								}
+							},
+							{
+								"source": {
+									"table": "ProductModel"
+								},
+								"destination": {
+									"fileName": "SalesLTProductModel.parquet"
+								}
+							},
+							{
+								"source": {
+									"table": "ProductModelProductDescription"
+								},
+								"destination": {
+									"fileName": "SalesLTProductModelProductDescription.parquet"
+								}
+							},
+							{
+								"source": {
+									"table": "SalesOrderDetail"
+								},
+								"destination": {
+									"fileName": "SalesLTSalesOrderDetail.parquet"
+								}
+							},
+							{
+								"source": {
+									"table": "SalesOrderHeader"
+								},
+								"destination": {
+									"fileName": "SalesLTSalesOrderHeader.parquet"
+								}
+							}
+						]
+					}
+				},
+				"folder": {
+					"name": "Landing"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-10-23T22:26:39Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/SourceDataset_al8')]",
+				"[concat(variables('workspaceId'), '/datasets/DestinationDataset_al8')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/CopyRawToDelta')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEach_Json_List",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('JsonTables')",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "DFFromJsonDelta",
+									"type": "ExecuteDataFlow",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "1.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataflow": {
+											"referenceName": "DataflowLandingBronzeJson",
+											"type": "DataFlowReference",
+											"parameters": {
+												"SourceTableName": {
+													"value": "'@{item().source}'",
+													"type": "Expression"
+												},
+												"TargetTableName": {
+													"value": "'@{item().destination}'",
+													"type": "Expression"
+												}
+											},
+											"datasetParameters": {
+												"JsonRaw": {},
+												"Delta": {}
+											}
+										},
+										"staging": {},
+										"integrationRuntime": {
+											"referenceName": "IntegrationRuntime1",
+											"type": "IntegrationRuntimeReference"
+										},
+										"traceLevel": "Fine"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "ForEach_Parquet_List",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "ForEach_Json_List",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('ParquetTables')",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "DFFromParquetDelta",
+									"type": "ExecuteDataFlow",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "1.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataflow": {
+											"referenceName": "DataflowLandingBronzeParquet",
+											"type": "DataFlowReference",
+											"parameters": {
+												"SourceTableName": {
+													"value": "'@{item().source}'",
+													"type": "Expression"
+												},
+												"TargetTableName": {
+													"value": "'@{item().destination}'",
+													"type": "Expression"
+												}
+											},
+											"datasetParameters": {
+												"ParquetRaw": {},
+												"Delta": {}
+											}
+										},
+										"staging": {},
+										"integrationRuntime": {
+											"referenceName": "IntegrationRuntime1",
+											"type": "IntegrationRuntimeReference"
+										},
+										"traceLevel": "Fine"
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"variables": {
+					"JsonTables": {
+						"type": "Array",
+						"defaultValue": [
+							{
+								"source": "SalesLTCustomer",
+								"destination": "Customer"
+							},
+							{
+								"source": "SalesLTAddress",
+								"destination": "Address"
+							},
+							{
+								"source": "SalesLTCustomerAddress",
+								"destination": "CustomerAddress"
+							}
+						]
+					},
+					"ParquetTables": {
+						"type": "Array",
+						"defaultValue": [
+							{
+								"source": "SalesLTProduct",
+								"destination": "Product"
+							},
+							{
+								"source": "SalesLTProductCategory",
+								"destination": "ProductCategory"
+							},
+							{
+								"source": "SalesLTProductDescription",
+								"destination": "ProductDescription"
+							},
+							{
+								"source": "SalesLTProductModel",
+								"destination": "ProductModel"
+							},
+							{
+								"source": "SalesLTSalesOrderDetail",
+								"destination": "SalesOrderDetail"
+							},
+							{
+								"source": "SalesLTSalesOrderHeader",
+								"destination": "SalesOrderHeader"
+							}
+						]
+					}
+				},
+				"folder": {
+					"name": "Bronze"
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-10-24T00:22:45Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/DataflowLandingBronzeJson')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/IntegrationRuntime1')]",
+				"[concat(variables('workspaceId'), '/dataflows/DataflowLandingBronzeParquet')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/CopySQLGold')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "SQL_Landing_JSON",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "CopyPipeline_Landing_Json",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "SQL_Landing_Parquet",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "CopyPipeline_Landing_Parquet",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "LandingBronze",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "SQL_Landing_Parquet",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "SQL_Landing_JSON",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "CopyRawToDelta",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "BronzeSilver_Customer",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "LandingBronze",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "BronzeToSilver_Customer",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "BronzeSilver",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "LandingBronze",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "BronzeToSilver",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "SilverGold_Product",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "BronzeSilver",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "BronzeSilver_Customer",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "SilverGold",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/CopyPipeline_Landing_Json')]",
+				"[concat(variables('workspaceId'), '/pipelines/CopyPipeline_Landing_Parquet')]",
+				"[concat(variables('workspaceId'), '/pipelines/CopyRawToDelta')]",
+				"[concat(variables('workspaceId'), '/pipelines/BronzeToSilver_Customer')]",
+				"[concat(variables('workspaceId'), '/pipelines/BronzeToSilver')]",
+				"[concat(variables('workspaceId'), '/pipelines/SilverGold')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SilverGold')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "DimProduct",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DataflowSilverGold_Product_SCD_Final",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SilverProduct": {},
+									"SilverCategory": {},
+									"SilverModel": {},
+									"GoldDimWatermarks": {},
+									"GoldDimProduct": {},
+									"GoldDimProductTarget1": {},
+									"LastKeyCache": {},
+									"TargetWatermark": {},
+									"GoldDimProductTarget2": {}
+								}
+							},
+							"staging": {},
+							"integrationRuntime": {
+								"referenceName": "IntegrationRuntime1",
+								"type": "IntegrationRuntimeReference"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "DimTime",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DataflowSilverGold_Time",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SalesHeaderSilver": {},
+									"DimTime": {}
+								}
+							},
+							"staging": {},
+							"integrationRuntime": {
+								"referenceName": "IntegrationRuntime1",
+								"type": "IntegrationRuntimeReference"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"folder": {
+					"name": "Gold"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/DataflowSilverGold_Product_SCD_Final')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/IntegrationRuntime1')]",
+				"[concat(variables('workspaceId'), '/dataflows/DataflowSilverGold_Time')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DestinationDataset_3lr')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_fileName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().cw_fileName",
+							"type": "Expression"
+						},
+						"folderPath": "raw/json",
+						"container": "syn-fs"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DestinationDataset_al8')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_fileName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().cw_fileName",
+							"type": "Expression"
+						},
+						"folderPath": "raw/parquet",
+						"container": "syn-fs"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DestinationDataset_da5')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_fileName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().cw_fileName",
+							"type": "Expression"
+						},
+						"folderPath": "raw/parquet",
+						"container": "syn-fs"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DestinationDataset_r5x')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_fileName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().cw_fileName",
+							"type": "Expression"
+						},
+						"folderPath": "raw/json",
+						"container": "syn-fs"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/JsonCustomer')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "SalesLTCustomer.json",
+						"folderPath": "raw/json",
+						"container": "syn-fs"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"CustomerID": {
+							"type": "integer"
+						},
+						"NameStyle": {
+							"type": "boolean"
+						},
+						"Title": {
+							"type": "string"
+						},
+						"FirstName": {
+							"type": "string"
+						},
+						"MiddleName": {
+							"type": "string"
+						},
+						"LastName": {
+							"type": "string"
+						},
+						"Suffix": {
+							"type": "string"
+						},
+						"CompanyName": {
+							"type": "string"
+						},
+						"SalesPerson": {
+							"type": "string"
+						},
+						"EmailAddress": {
+							"type": "string"
+						},
+						"Phone": {
+							"type": "string"
+						},
+						"PasswordHash": {
+							"type": "string"
+						},
+						"PasswordSalt": {
+							"type": "string"
+						},
+						"rowguid": {
+							"type": "string"
+						},
+						"ModifiedDate": {
+							"type": "string"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/JsonCustomerAddress')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "SalesLTCustomerAddress.json",
+						"folderPath": "raw/json",
+						"container": "syn-fs"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"CustomerID": {
+							"type": "integer"
+						},
+						"AddressID": {
+							"type": "integer"
+						},
+						"AddressType": {
+							"type": "string"
+						},
+						"rowguid": {
+							"type": "string"
+						},
+						"ModifiedDate": {
+							"type": "string"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/JsonDS')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "raw/json",
+						"container": "syn-fs"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/JsonDS2')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "raw/json",
+						"container": "syn-fs"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"AddressID": {
+							"type": "integer"
+						},
+						"AddressLine1": {
+							"type": "string"
+						},
+						"AddressLine2": {
+							"type": "null"
+						},
+						"City": {
+							"type": "string"
+						},
+						"StateProvince": {
+							"type": "string"
+						},
+						"CountryRegion": {
+							"type": "string"
+						},
+						"PostalCode": {
+							"type": "string"
+						},
+						"rowguid": {
+							"type": "string"
+						},
+						"ModifiedDate": {
+							"type": "string"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Json_Raw')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"folderName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().folderName",
+							"type": "Expression"
+						},
+						"folderPath": "raw/json",
+						"container": "syn-fs"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"AddressID": {
+							"type": "integer"
+						},
+						"AddressLine1": {
+							"type": "string"
+						},
+						"AddressLine2": {
+							"type": "null"
+						},
+						"City": {
+							"type": "string"
+						},
+						"StateProvince": {
+							"type": "string"
+						},
+						"CountryRegion": {
+							"type": "string"
+						},
+						"PostalCode": {
+							"type": "string"
+						},
+						"rowguid": {
+							"type": "string"
+						},
+						"ModifiedDate": {
+							"type": "string"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ParquetDS')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "raw/parquet",
+						"container": "syn-fs"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SourceDataset_3lr')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_table": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "SalesLT",
+					"table": {
+						"value": "@dataset().cw_table",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SourceDataset_al8')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_table": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "SalesLT",
+					"table": {
+						"value": "@dataset().cw_table",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SourceDataset_da5')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_table": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "SalesLT",
+					"table": {
+						"value": "@dataset().cw_table",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SourceDataset_r5x')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_table": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "SalesLT",
+					"table": {
+						"value": "@dataset().cw_table",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureBlobStorage1')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureBlobStorage2')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage2_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureSqlDatabase1')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSqlDatabase1_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/synapse-study-ws-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('synapse-study-ws-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/synapse-study-ws-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('synapse-study-ws-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WeeklyTrigger')]",
+			"type": "Microsoft.Synapse/workspaces/triggers",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipeline": {
+					"pipelineReference": {
+						"referenceName": "BronzeSilverSalesOrders",
+						"type": "PipelineReference"
+					},
+					"parameters": {}
+				},
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Hour",
+					"interval": 168,
+					"startTime": "2022-02-26T00:00:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 50,
+					"retryPolicy": {
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/BronzeSilverSalesOrders')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/IntegrationRuntime1')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 5,
+							"cleanup": false
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DataflowBronzeSilver')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Child flows/Silver"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "BronzeDelta"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverDelta"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AddMetadataColums"
+						},
+						{
+							"name": "RankRowVersions"
+						},
+						{
+							"name": "Deduplicate"
+						},
+						{
+							"name": "RemoveMetadataColumns"
+						}
+					],
+					"script": "parameters{\n\tSourceTableName as string (\"\"),\n\tTargetTableName as string (\"\"),\n\tPrimaryKey as string (\"\"),\n\tTimestampColumn as string\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: (concat(\"delta/bronze/\",$SourceTableName,\"/\"))) ~> BronzeDelta\nBronzeDelta derive(PkColumn = byName($PrimaryKey),\n\t\tTSColumn = byName($TimestampColumn)) ~> AddMetadataColums\nAddMetadataColums window(over(PkColumn),\n\tdesc(TSColumn, true),\n\tRowVersion = denseRank()) ~> RankRowVersions\nRankRowVersions filter(RowVersion==1) ~> Deduplicate\nDeduplicate select(mapColumn(\n\t\teach(match(name!=\"PkColumn\"&&name!=\"TSColumn\"&&name!=\"RowVersion\"))\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RemoveMetadataColumns\nRemoveMetadataColumns sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: (concat(\"delta/silver/\",$TargetTableName,\"/\")),\n\ttruncate:true,\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SilverDelta"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DataflowBronzeSilver_Customer')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Child flows/Silver"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "BronzeDelta"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverDelta"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AddMetadataColums"
+						},
+						{
+							"name": "RankRowVersions"
+						},
+						{
+							"name": "Deduplicate"
+						},
+						{
+							"name": "ParsedEmailAddress"
+						},
+						{
+							"name": "ExtractEmailAddressParts"
+						},
+						{
+							"name": "RemoveMetadataColumns"
+						},
+						{
+							"name": "GetAdjasentValues"
+						},
+						{
+							"name": "FillMissingValues"
+						}
+					],
+					"script": "parameters{\n\tSourceTableName as string (\"Customer\"),\n\tTargetTableName as string (\"Customer\"),\n\tPrimaryKey as string (\"CustomerID\"),\n\tTimestampColumn as string (\"DateInserted\")\n}\nsource(output(\n\t\tCompanyName as string,\n\t\tCustomerID as string,\n\t\tEmailAddress as string,\n\t\tFirstName as string,\n\t\tLastName as string,\n\t\tMiddleName as string,\n\t\tModifiedDate as string,\n\t\tNameStyle as string,\n\t\tPasswordHash as string,\n\t\tPasswordSalt as string,\n\t\tPhone as string,\n\t\tSalesPerson as string,\n\t\tSuffix as string,\n\t\tTitle as string,\n\t\trowguid as string,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcompressionType: 'snappy',\n\tcompressionLevel: 'Fastest',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/bronze/Customer') ~> BronzeDelta\nBronzeDelta derive(PkColumn = byName($PrimaryKey),\n\t\tTSColumn = byName($TimestampColumn)) ~> AddMetadataColums\nFillMissingValues window(over(PkColumn),\n\tdesc(TSColumn, true),\n\tRowVersion = denseRank()) ~> RankRowVersions\nRankRowVersions filter(RowVersion==1) ~> Deduplicate\nDeduplicate parse(ParsedEmailAddress = EmailAddress ? (UserName as string,\n\t\tDomain as string),\n\tformat: 'delimited',\n\tcolumnNamesAsHeader: false,\n\tcolumnDelimiter: '@',\n\tnullValue: '') ~> ParsedEmailAddress\nParsedEmailAddress derive(UserName = ParsedEmailAddress.UserName,\n\t\tDomain = ParsedEmailAddress.Domain) ~> ExtractEmailAddressParts\nExtractEmailAddressParts select(mapColumn(\n\t\teach(match(name!=\"PkColumn\"&&name!=\"TSColumn\"&&name!=\"RowVersion\"&&name!=\"ParsedEmailAddress\"))\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RemoveMetadataColumns\nAddMetadataColums window(over(CustomerID),\n\tasc(DateInserted, true),\n\tCompanyName_Prev = lag(CompanyName)) ~> GetAdjasentValues\nGetAdjasentValues derive(CompanyName = iif(isNull(CompanyName),CompanyName_Prev,CompanyName),\n\t\tPhone = iif(isNull(Phone),\"N/A\",Phone)) ~> FillMissingValues\nRemoveMetadataColumns sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: (concat(\"delta/silver/\",$TargetTableName,\"/\")),\n\ttruncate:true,\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SilverDelta"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DataflowBronzeSilver_SalesOrder')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Child flows/Silver"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SalesOrderDetailBronze"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SalesOrderHeaderBronze"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SalesOrderDetailSilver"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SalesOrderHeaderSilver"
+						}
+					],
+					"transformations": [
+						{
+							"name": "RankSalesOrderDetails"
+						},
+						{
+							"name": "FilterSalesOrderDetails"
+						},
+						{
+							"name": "FilterTimeRange"
+						},
+						{
+							"name": "Exists1"
+						},
+						{
+							"name": "SelectSalesOrderDetails"
+						},
+						{
+							"name": "RankSalesOrderHeaders"
+						},
+						{
+							"name": "FilterSalesOrderHeaders"
+						},
+						{
+							"name": "SelectSalesOrderHeaders"
+						},
+						{
+							"name": "AlterRowSalesOrderDetails"
+						},
+						{
+							"name": "AlterRowSalesOrderHeaders"
+						}
+					],
+					"script": "parameters{\n\tWindowStart as timestamp (toTimestamp(\"2008-06-08\",\"yyyy-MM-dd\")),\n\tWndowEnd as timestamp (toTimestamp(\"2008-06-09\",\"yyyy-MM-dd\"))\n}\nsource(output(\n\t\tSalesOrderID as integer,\n\t\tSalesOrderDetailID as integer,\n\t\tOrderQty as integer,\n\t\tProductID as integer,\n\t\tUnitPrice as decimal(19,4),\n\t\tUnitPriceDiscount as decimal(19,4),\n\t\tLineTotal as decimal(38,6),\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/bronze/SalesOrderDetail') ~> SalesOrderDetailBronze\nsource(output(\n\t\tSalesOrderID as integer,\n\t\tRevisionNumber as integer,\n\t\tOrderDate as timestamp,\n\t\tDueDate as timestamp,\n\t\tShipDate as timestamp,\n\t\tStatus as integer,\n\t\tOnlineOrderFlag as boolean,\n\t\tSalesOrderNumber as string,\n\t\tPurchaseOrderNumber as string,\n\t\tAccountNumber as string,\n\t\tCustomerID as integer,\n\t\tShipToAddressID as integer,\n\t\tBillToAddressID as integer,\n\t\tShipMethod as string,\n\t\tCreditCardApprovalCode as string,\n\t\tSubTotal as decimal(19,4),\n\t\tTaxAmt as decimal(19,4),\n\t\tFreight as decimal(19,4),\n\t\tTotalDue as decimal(19,4),\n\t\tComment as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/bronze/SalesOrderHeader') ~> SalesOrderHeaderBronze\nExists1 window(over(SalesOrderID,\n\t\tSalesOrderDetailID),\n\tdesc(ModifiedDate, true),\n\tRowVersion = rowNumber()) ~> RankSalesOrderDetails\nRankSalesOrderDetails filter(RowVersion==1) ~> FilterSalesOrderDetails\nSalesOrderHeaderBronze filter(ModifiedDate>=$WindowStart && ModifiedDate <$WndowEnd) ~> FilterTimeRange\nSalesOrderDetailBronze, FilterTimeRange exists(SalesOrderDetailBronze@SalesOrderID == SalesOrderHeaderBronze@SalesOrderID,\n\tnegate:false,\n\tbroadcast: 'auto')~> Exists1\nFilterSalesOrderDetails select(mapColumn(\n\t\tSalesOrderID,\n\t\tSalesOrderDetailID,\n\t\tOrderQty,\n\t\tProductID,\n\t\tUnitPrice,\n\t\tUnitPriceDiscount,\n\t\tLineTotal,\n\t\trowguid,\n\t\tModifiedDate,\n\t\tSourceFileName,\n\t\tDateInserted\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectSalesOrderDetails\nFilterTimeRange window(over(SalesOrderID),\n\tdesc(DateInserted, true),\n\tRowVersion = rowNumber()) ~> RankSalesOrderHeaders\nRankSalesOrderHeaders filter(RowVersion==1) ~> FilterSalesOrderHeaders\nFilterSalesOrderHeaders select(mapColumn(\n\t\tSalesOrderID,\n\t\tRevisionNumber,\n\t\tOrderDate,\n\t\tDueDate,\n\t\tShipDate,\n\t\tStatus,\n\t\tOnlineOrderFlag,\n\t\tSalesOrderNumber,\n\t\tPurchaseOrderNumber,\n\t\tAccountNumber,\n\t\tCustomerID,\n\t\tShipToAddressID,\n\t\tBillToAddressID,\n\t\tShipMethod,\n\t\tCreditCardApprovalCode,\n\t\tSubTotal,\n\t\tTaxAmt,\n\t\tFreight,\n\t\tTotalDue,\n\t\tComment,\n\t\trowguid,\n\t\tModifiedDate,\n\t\tSourceFileName,\n\t\tDateInserted\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectSalesOrderHeaders\nSelectSalesOrderDetails alterRow(upsertIf(true())) ~> AlterRowSalesOrderDetails\nSelectSalesOrderHeaders alterRow(upsertIf(true())) ~> AlterRowSalesOrderHeaders\nAlterRowSalesOrderDetails sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/SalesOrderDetail',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['SalesOrderID','SalesOrderDetailID'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SalesOrderDetailSilver\nAlterRowSalesOrderHeaders sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/SalesOrderHeader',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['SalesOrderID'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SalesOrderHeaderSilver"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DataflowLandingBronzeJson')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Child flows/Bronze"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "JsonDS",
+								"type": "DatasetReference"
+							},
+							"name": "JsonRaw"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "Delta"
+						}
+					],
+					"transformations": [
+						{
+							"name": "MetadataColumns"
+						}
+					],
+					"script": "parameters{\n\tSourceTableName as string (\"SalesLTCustomer\"),\n\tTargetTableName as string (\"Customer\")\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\trowUrlColumn: 'SourceFileName',\n\tdocumentForm: 'documentPerLine',\n\twildcardPaths:[(concat(\"raw/json/\",$SourceTableName,\".json\"))]) ~> JsonRaw\nJsonRaw derive(DateInserted = currentTimestamp()) ~> MetadataColumns\nMetadataColumns sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: (concat(\"delta/bronze/\",$TargetTableName,\"/\")),\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Delta"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/JsonDS')]",
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DataflowLandingBronzeParquet')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Child flows/Bronze"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ParquetDS",
+								"type": "DatasetReference"
+							},
+							"name": "ParquetRaw"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "Delta"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DerivedColumn1"
+						}
+					],
+					"script": "parameters{\n\tSourceTableName as string (\"\"),\n\tTargetTableName as string (\"\")\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpurgeFiles: true,\n\trowUrlColumn: 'SourceFileName',\n\tformat: 'parquet',\n\twildcardPaths:[(concat(\"raw/parquet/\",$SourceTableName,\".parquet\"))]) ~> ParquetRaw\nParquetRaw derive(DateInserted = currentTimestamp()) ~> DerivedColumn1\nDerivedColumn1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: (concat(\"delta/bronze/\",$TargetTableName,\"/\")),\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Delta"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/ParquetDS')]",
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DataflowSilverGold_Product')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Child flows/Gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverProduct"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverCategory"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverModel"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "GoldProduct"
+						}
+					],
+					"transformations": [
+						{
+							"name": "LookupCategory"
+						},
+						{
+							"name": "JoinModel"
+						},
+						{
+							"name": "Select"
+						}
+					],
+					"script": "source(output(\n\t\tProductID as integer,\n\t\tName as string,\n\t\tProductNumber as string,\n\t\tColor as string,\n\t\tStandardCost as decimal(19,4),\n\t\tListPrice as decimal(19,4),\n\t\tSize as string,\n\t\tWeight as decimal(8,2),\n\t\tProductCategoryID as integer,\n\t\tProductModelID as integer,\n\t\tSellStartDate as timestamp,\n\t\tSellEndDate as timestamp,\n\t\tDiscontinuedDate as timestamp,\n\t\tThumbNailPhoto as binary,\n\t\tThumbnailPhotoFileName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/Product') ~> SilverProduct\nsource(output(\n\t\tProductCategoryID as integer,\n\t\tParentProductCategoryID as integer,\n\t\tName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/ProductCategory') ~> SilverCategory\nsource(output(\n\t\tProductModelID as integer,\n\t\tName as string,\n\t\tCatalogDescription as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/ ProductModel') ~> SilverModel\nSilverProduct, SilverCategory lookup(SilverProduct@ProductCategoryID == SilverCategory@ProductCategoryID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'auto')~> LookupCategory\nLookupCategory, SilverModel join(SilverProduct@ProductModelID == SilverModel@ProductModelID,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinModel\nJoinModel select(mapColumn(\n\t\tProductID,\n\t\tName = SilverProduct@Name,\n\t\tProductNumber,\n\t\tColor,\n\t\tStandardCost,\n\t\tListPrice,\n\t\tSize,\n\t\tWeight,\n\t\tProductCategoryID = SilverProduct@ProductCategoryID,\n\t\tProductModelID = SilverProduct@ProductModelID,\n\t\tSellStartDate,\n\t\tSellEndDate,\n\t\tDiscontinuedDate,\n\t\tThumbNailPhoto,\n\t\tThumbnailPhotoFileName,\n\t\trowguid = SilverProduct@rowguid,\n\t\tModifiedDate = SilverProduct@ModifiedDate,\n\t\tSourceFileName = SilverProduct@SourceFileName,\n\t\tDateInserted = SilverProduct@DateInserted,\n\t\tProductCategory = SilverCategory@Name,\n\t\tSourceFileName = SilverCategory@SourceFileName,\n\t\tProductModel = SilverModel@Name\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select\nSelect sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/DimProduct',\n\ttruncate:true,\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> GoldProduct"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DataflowSilverGold_Product_SCD_Final')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Child flows/Gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverProduct"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverCategory"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverModel"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "GoldDimWatermarks"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "GoldDimProduct"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "GoldDimProductTarget1"
+						},
+						{
+							"name": "LastKeyCache"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "TargetWatermark"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "GoldDimProductTarget2"
+						}
+					],
+					"transformations": [
+						{
+							"name": "LookupCategory"
+						},
+						{
+							"name": "JoinModel"
+						},
+						{
+							"name": "SelectSourceTarget"
+						},
+						{
+							"name": "Filter1"
+						},
+						{
+							"name": "SurrogateKey1"
+						},
+						{
+							"name": "CalculateKey"
+						},
+						{
+							"name": "AddTableName"
+						},
+						{
+							"name": "CalculateMaxKey"
+						},
+						{
+							"name": "AlterRow"
+						},
+						{
+							"name": "CalculateSignature"
+						},
+						{
+							"name": "GetTargetRows"
+						},
+						{
+							"name": "LookupTargetRows"
+						},
+						{
+							"name": "FilterInactiveRows"
+						},
+						{
+							"name": "SelectInactiveCols"
+						},
+						{
+							"name": "UpdateSCDInactive"
+						},
+						{
+							"name": "FilterActive"
+						},
+						{
+							"name": "UpdateSCDActive"
+						},
+						{
+							"name": "AlterRowInactive"
+						},
+						{
+							"name": "Select1"
+						}
+					],
+					"script": "source(output(\n\t\tProductID as integer,\n\t\tName as string,\n\t\tProductNumber as string,\n\t\tColor as string,\n\t\tStandardCost as decimal(19,4),\n\t\tListPrice as decimal(19,4),\n\t\tSize as string,\n\t\tWeight as decimal(8,2),\n\t\tProductCategoryID as integer,\n\t\tProductModelID as integer,\n\t\tSellStartDate as timestamp,\n\t\tSellEndDate as timestamp,\n\t\tDiscontinuedDate as timestamp,\n\t\tThumbNailPhoto as binary,\n\t\tThumbnailPhotoFileName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/Product') ~> SilverProduct\nsource(output(\n\t\tProductCategoryID as integer,\n\t\tParentProductCategoryID as integer,\n\t\tName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/ProductCategory') ~> SilverCategory\nsource(output(\n\t\tProductModelID as integer,\n\t\tName as string,\n\t\tCatalogDescription as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/ ProductModel') ~> SilverModel\nsource(output(\n\t\tTableName as string,\n\t\tLastKey as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/dimWatermarks') ~> GoldDimWatermarks\nsource(output(\n\t\tProductID as integer,\n\t\tName as string,\n\t\tProductNumber as string,\n\t\tColor as string,\n\t\tStandardCost as decimal(19,4),\n\t\tListPrice as decimal(19,4),\n\t\tSize as string,\n\t\tWeight as decimal(8,2),\n\t\tProductCategoryID as integer,\n\t\tProductModelID as integer,\n\t\tSellStartDate as timestamp,\n\t\tSellEndDate as timestamp,\n\t\tDiscontinuedDate as timestamp,\n\t\tThumbNailPhoto as string,\n\t\tThumbnailPhotoFileName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp,\n\t\tProductCategory as string,\n\t\tProductModel as string,\n\t\tRowSignature as long,\n\t\tEffectiveFromDate as timestamp,\n\t\tEffectiveToDate as timestamp,\n\t\tIsActive as integer,\n\t\tProductKey as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/DimProduct') ~> GoldDimProduct\nSilverProduct, SilverCategory lookup(SilverProduct@ProductCategoryID == SilverCategory@ProductCategoryID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'auto')~> LookupCategory\nLookupCategory, SilverModel join(SilverProduct@ProductModelID == SilverModel@ProductModelID,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinModel\nLookupTargetRows select(mapColumn(\n\t\tProductID = SilverProduct@ProductID,\n\t\tName = SilverProduct@Name,\n\t\tProductNumber = SilverProduct@ProductNumber,\n\t\tColor = SilverProduct@Color,\n\t\tStandardCost = SilverProduct@StandardCost,\n\t\tListPrice = SilverProduct@ListPrice,\n\t\tSize = SilverProduct@Size,\n\t\tWeight = SilverProduct@Weight,\n\t\tModifiedDate = SilverProduct@ModifiedDate,\n\t\tDateInserted = SilverProduct@DateInserted,\n\t\tProductCategory = SilverCategory@Name,\n\t\tProductModel = SilverModel@Name,\n\t\tRowSignature = CalculateSignature@RowSignature,\n\t\tTargetRowSignature = GoldDimProduct@RowSignature,\n\t\tEffectiveFromDate,\n\t\tEffectiveToDate,\n\t\tIsActive,\n\t\tTargetProductKey = ProductKey\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectSourceTarget\nGoldDimWatermarks filter(TableName==\"DimProduct\") ~> Filter1\nUpdateSCDActive keyGenerate(output(ProductKey as long),\n\tstartAt: 1L) ~> SurrogateKey1\nSurrogateKey1 derive(ProductKey = ProductKey+ toInteger(LastKeyCache#outputs()[1].LastKey)) ~> CalculateKey\nCalculateKey derive(TableName = \"DimProduct\") ~> AddTableName\nAddTableName aggregate(groupBy(TableName),\n\tLastKey = max(ProductKey)) ~> CalculateMaxKey\nCalculateMaxKey alterRow(updateIf(TableName==\"DimProduct\")) ~> AlterRow\nJoinModel derive(RowSignature = crc32(256,SilverProduct@Name,ProductNumber,Color,StandardCost,ListPrice,Size,Weight,SilverCategory@Name,SilverModel@Name)) ~> CalculateSignature\nGoldDimProduct filter(IsActive==1) ~> GetTargetRows\nCalculateSignature, GetTargetRows lookup(SilverProduct@ProductID == GoldDimProduct@ProductID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'auto')~> LookupTargetRows\nSelectSourceTarget filter(TargetRowSignature!=RowSignature) ~> FilterInactiveRows\nUpdateSCDInactive select(mapColumn(\n\t\tProductID,\n\t\tEffectiveToDate,\n\t\tIsActive,\n\t\tProductKey = TargetProductKey\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectInactiveCols\nFilterInactiveRows derive(EffectiveToDate = currentTimestamp(),\n\t\tIsActive = 0) ~> UpdateSCDInactive\nSelectSourceTarget filter(isNull(TargetRowSignature) || TargetRowSignature!=RowSignature) ~> FilterActive\nSelect1 derive(EffectiveFromDate = currentTimestamp(),\n\t\tEffectiveToDate = toTimestamp('9099-01-01', 'yyyy-MM-dd'),\n\t\tIsActive = 1) ~> UpdateSCDActive\nSelectInactiveCols alterRow(updateIf(!isNull(ProductID))) ~> AlterRowInactive\nFilterActive select(mapColumn(\n\t\tProductID,\n\t\tName,\n\t\tProductNumber,\n\t\tColor,\n\t\tStandardCost,\n\t\tListPrice,\n\t\tSize,\n\t\tWeight,\n\t\tModifiedDate,\n\t\tDateInserted,\n\t\tProductCategory,\n\t\tProductModel,\n\t\tRowSignature,\n\t\tEffectiveFromDate,\n\t\tEffectiveToDate,\n\t\tIsActive\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nCalculateKey sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/DimProduct',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> GoldDimProductTarget1\nFilter1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: false,\n\tsaveOrder: 1) ~> LastKeyCache\nAlterRow sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/dimWatermarks',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:true,\n\tupsertable:true,\n\tkeys:['TableName'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> TargetWatermark\nAlterRowInactive sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/DimProduct',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['ProductKey'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> GoldDimProductTarget2"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DataflowSilverGold_Product_SCD_Union')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Child flows/Gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverProduct"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverCategory"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverModel"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "GoldDimWatermarks"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "GoldDimProduct"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "GoldDimProductTarget1"
+						},
+						{
+							"name": "LastKeyCache"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "TargetWatermark"
+						}
+					],
+					"transformations": [
+						{
+							"name": "LookupCategory"
+						},
+						{
+							"name": "JoinModel"
+						},
+						{
+							"name": "SelectSourceTarget"
+						},
+						{
+							"name": "Filter1"
+						},
+						{
+							"name": "SurrogateKey1"
+						},
+						{
+							"name": "CalculateKey"
+						},
+						{
+							"name": "AddTableName"
+						},
+						{
+							"name": "CalculateMaxKey"
+						},
+						{
+							"name": "AlterRow"
+						},
+						{
+							"name": "CalculateSignature"
+						},
+						{
+							"name": "GetTargetRows"
+						},
+						{
+							"name": "LookupTargetRows"
+						},
+						{
+							"name": "FilterInactiveRows"
+						},
+						{
+							"name": "SelectInactiveCols"
+						},
+						{
+							"name": "UpdateSCDInactive"
+						},
+						{
+							"name": "FilterActive"
+						},
+						{
+							"name": "UpdateSCDActive"
+						},
+						{
+							"name": "AlterRowInactive"
+						},
+						{
+							"name": "Select1"
+						},
+						{
+							"name": "Union1"
+						}
+					],
+					"script": "source(output(\n\t\tProductID as integer,\n\t\tName as string,\n\t\tProductNumber as string,\n\t\tColor as string,\n\t\tStandardCost as decimal(19,4),\n\t\tListPrice as decimal(19,4),\n\t\tSize as string,\n\t\tWeight as decimal(8,2),\n\t\tProductCategoryID as integer,\n\t\tProductModelID as integer,\n\t\tSellStartDate as timestamp,\n\t\tSellEndDate as timestamp,\n\t\tDiscontinuedDate as timestamp,\n\t\tThumbNailPhoto as binary,\n\t\tThumbnailPhotoFileName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/Product') ~> SilverProduct\nsource(output(\n\t\tProductCategoryID as integer,\n\t\tParentProductCategoryID as integer,\n\t\tName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/ProductCategory') ~> SilverCategory\nsource(output(\n\t\tProductModelID as integer,\n\t\tName as string,\n\t\tCatalogDescription as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/ ProductModel') ~> SilverModel\nsource(output(\n\t\tTableName as string,\n\t\tLastKey as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/dimWatermarks') ~> GoldDimWatermarks\nsource(output(\n\t\tProductID as integer,\n\t\tName as string,\n\t\tProductNumber as string,\n\t\tColor as string,\n\t\tStandardCost as decimal(19,4),\n\t\tListPrice as decimal(19,4),\n\t\tSize as string,\n\t\tWeight as decimal(8,2),\n\t\tProductCategoryID as integer,\n\t\tProductModelID as integer,\n\t\tSellStartDate as timestamp,\n\t\tSellEndDate as timestamp,\n\t\tDiscontinuedDate as timestamp,\n\t\tThumbNailPhoto as string,\n\t\tThumbnailPhotoFileName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp,\n\t\tProductCategory as string,\n\t\tProductModel as string,\n\t\tRowSignature as long,\n\t\tEffectiveFromDate as timestamp,\n\t\tEffectiveToDate as timestamp,\n\t\tIsActive as integer,\n\t\tProductKey as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/DimProduct') ~> GoldDimProduct\nSilverProduct, SilverCategory lookup(SilverProduct@ProductCategoryID == SilverCategory@ProductCategoryID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'auto')~> LookupCategory\nLookupCategory, SilverModel join(SilverProduct@ProductModelID == SilverModel@ProductModelID,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinModel\nLookupTargetRows select(mapColumn(\n\t\tProductID = SilverProduct@ProductID,\n\t\tName = SilverProduct@Name,\n\t\tProductNumber = SilverProduct@ProductNumber,\n\t\tColor = SilverProduct@Color,\n\t\tStandardCost = SilverProduct@StandardCost,\n\t\tListPrice = SilverProduct@ListPrice,\n\t\tSize = SilverProduct@Size,\n\t\tWeight = SilverProduct@Weight,\n\t\tModifiedDate = SilverProduct@ModifiedDate,\n\t\tDateInserted = SilverProduct@DateInserted,\n\t\tProductCategory = SilverCategory@Name,\n\t\tProductModel = SilverModel@Name,\n\t\tRowSignature = CalculateSignature@RowSignature,\n\t\tTargetRowSignature = GoldDimProduct@RowSignature,\n\t\tEffectiveFromDate,\n\t\tEffectiveToDate,\n\t\tIsActive,\n\t\tTargetName = GoldDimProduct@Name,\n\t\tTargetProductNumber = GoldDimProduct@ProductNumber,\n\t\tTargetColor = GoldDimProduct@Color,\n\t\tTargetStandardCost = GoldDimProduct@StandardCost,\n\t\tTargetListPrice = GoldDimProduct@ListPrice,\n\t\tTargetSize = GoldDimProduct@Size,\n\t\tTargetWeight = GoldDimProduct@Weight,\n\t\tTargetProductKey = ProductKey\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectSourceTarget\nGoldDimWatermarks filter(TableName==\"DimProduct\") ~> Filter1\nUpdateSCDActive keyGenerate(output(ProductKey as long),\n\tstartAt: 1L) ~> SurrogateKey1\nSurrogateKey1 derive(ProductKey = ProductKey+ toInteger(LastKeyCache#outputs()[1].LastKey)) ~> CalculateKey\nCalculateKey derive(TableName = \"DimProduct\") ~> AddTableName\nAddTableName aggregate(groupBy(TableName),\n\tLastKey = max(ProductKey)) ~> CalculateMaxKey\nCalculateMaxKey alterRow(updateIf(TableName==\"DimProduct\")) ~> AlterRow\nJoinModel derive(RowSignature = crc32(256,SilverProduct@Name,ProductNumber,Color,StandardCost,ListPrice,Size,Weight,SilverCategory@Name,SilverModel@Name)) ~> CalculateSignature\nGoldDimProduct filter(IsActive==1) ~> GetTargetRows\nCalculateSignature, GetTargetRows lookup(SilverProduct@ProductID == GoldDimProduct@ProductID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'auto')~> LookupTargetRows\nSelectSourceTarget filter(TargetRowSignature!=RowSignature) ~> FilterInactiveRows\nUpdateSCDInactive select(mapColumn(\n\t\tProductID,\n\t\tEffectiveFromDate,\n\t\tEffectiveToDate,\n\t\tIsActive,\n\t\teach(match(startsWith(name,'Target')),\n\t\t\treplace($$,'Target','') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectInactiveCols\nFilterInactiveRows derive(EffectiveFromDate = iif(isNull(TargetRowSignature),currentTimestamp(),EffectiveFromDate),\n\t\tEffectiveToDate = currentTimestamp(),\n\t\tIsActive = 0) ~> UpdateSCDInactive\nSelectSourceTarget filter(isNull(TargetRowSignature) || TargetRowSignature!=RowSignature) ~> FilterActive\nSelect1 derive(EffectiveFromDate = currentTimestamp(),\n\t\tEffectiveToDate = toTimestamp('9099-01-01', 'yyyy-MM-dd'),\n\t\tIsActive = 1) ~> UpdateSCDActive\nSelectInactiveCols alterRow(updateIf(!isNull(ProductID))) ~> AlterRowInactive\nFilterActive select(mapColumn(\n\t\tProductID,\n\t\tName,\n\t\tProductNumber,\n\t\tColor,\n\t\tStandardCost,\n\t\tListPrice,\n\t\tSize,\n\t\tWeight,\n\t\tModifiedDate,\n\t\tDateInserted,\n\t\tProductCategory,\n\t\tProductModel,\n\t\tRowSignature,\n\t\tEffectiveFromDate,\n\t\tEffectiveToDate,\n\t\tIsActive\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nCalculateKey, AlterRowInactive union(byName: true)~> Union1\nUnion1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/DimProduct',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['ProductID'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> GoldDimProductTarget1\nFilter1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: false,\n\tsaveOrder: 0) ~> LastKeyCache\nAlterRow sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/dimWatermarks',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:true,\n\tupsertable:true,\n\tkeys:['TableName'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> TargetWatermark"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DataflowSilverGold_Product_SurrKey')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Child flows/Gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverProduct"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverCategory"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverModel"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "GoldDimWatermarks"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "GoldProduct"
+						},
+						{
+							"name": "LastKeyCache"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "TargetWatermark"
+						}
+					],
+					"transformations": [
+						{
+							"name": "LookupCategory"
+						},
+						{
+							"name": "JoinModel"
+						},
+						{
+							"name": "Select"
+						},
+						{
+							"name": "Filter1"
+						},
+						{
+							"name": "SurrogateKey1"
+						},
+						{
+							"name": "CalculateKey"
+						},
+						{
+							"name": "AddTableName"
+						},
+						{
+							"name": "CalculateMaxKey"
+						},
+						{
+							"name": "AlterRow"
+						}
+					],
+					"script": "source(output(\n\t\tProductID as integer,\n\t\tName as string,\n\t\tProductNumber as string,\n\t\tColor as string,\n\t\tStandardCost as decimal(19,4),\n\t\tListPrice as decimal(19,4),\n\t\tSize as string,\n\t\tWeight as decimal(8,2),\n\t\tProductCategoryID as integer,\n\t\tProductModelID as integer,\n\t\tSellStartDate as timestamp,\n\t\tSellEndDate as timestamp,\n\t\tDiscontinuedDate as timestamp,\n\t\tThumbNailPhoto as binary,\n\t\tThumbnailPhotoFileName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/Product') ~> SilverProduct\nsource(output(\n\t\tProductCategoryID as integer,\n\t\tParentProductCategoryID as integer,\n\t\tName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/ProductCategory') ~> SilverCategory\nsource(output(\n\t\tProductModelID as integer,\n\t\tName as string,\n\t\tCatalogDescription as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/ ProductModel') ~> SilverModel\nsource(output(\n\t\tTableName as string,\n\t\tLastKey as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/dimWatermarks') ~> GoldDimWatermarks\nSilverProduct, SilverCategory lookup(SilverProduct@ProductCategoryID == SilverCategory@ProductCategoryID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'auto')~> LookupCategory\nLookupCategory, SilverModel join(SilverProduct@ProductModelID == SilverModel@ProductModelID,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinModel\nJoinModel select(mapColumn(\n\t\tProductID,\n\t\tName = SilverProduct@Name,\n\t\tProductNumber,\n\t\tColor,\n\t\tStandardCost,\n\t\tListPrice,\n\t\tSize,\n\t\tWeight,\n\t\tProductCategoryID = SilverProduct@ProductCategoryID,\n\t\tProductModelID = SilverProduct@ProductModelID,\n\t\tSellStartDate,\n\t\tSellEndDate,\n\t\tDiscontinuedDate,\n\t\tThumbNailPhoto,\n\t\tThumbnailPhotoFileName,\n\t\trowguid = SilverProduct@rowguid,\n\t\tModifiedDate = SilverProduct@ModifiedDate,\n\t\tSourceFileName = SilverProduct@SourceFileName,\n\t\tDateInserted = SilverProduct@DateInserted,\n\t\tProductCategory = SilverCategory@Name,\n\t\tSourceFileName = SilverCategory@SourceFileName,\n\t\tProductModel = SilverModel@Name\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select\nGoldDimWatermarks filter(TableName==\"DimProduct\") ~> Filter1\nSelect keyGenerate(output(ProductKey as long),\n\tstartAt: 1L) ~> SurrogateKey1\nSurrogateKey1 derive(ProductKey = ProductKey+ toInteger(LastKeyCache#outputs()[1].LastKey)) ~> CalculateKey\nCalculateKey derive(TableName = \"DimProduct\") ~> AddTableName\nAddTableName aggregate(groupBy(TableName),\n\tLastKey = max(ProductKey)) ~> CalculateMaxKey\nCalculateMaxKey alterRow(updateIf(TableName==\"DimProduct\")) ~> AlterRow\nCalculateKey sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/DimProduct',\n\ttruncate:true,\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> GoldProduct\nFilter1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: false,\n\tsaveOrder: 1) ~> LastKeyCache\nAlterRow sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/dimWatermarks',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:true,\n\tupsertable:true,\n\tkeys:['TableName'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> TargetWatermark"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DataflowSilverGold_Time')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Child flows/Gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SalesHeaderSilver"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DimTime"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ShipDateFlowlet",
+							"flowlet": {
+								"referenceName": "Time_Flowlet",
+								"type": "DataFlowReference",
+								"parameters": {}
+							}
+						},
+						{
+							"name": "OrderDateFlowlet",
+							"flowlet": {
+								"referenceName": "Time_Flowlet",
+								"type": "DataFlowReference",
+								"parameters": {}
+							}
+						},
+						{
+							"name": "DueDateFlowlet",
+							"flowlet": {
+								"referenceName": "Time_Flowlet",
+								"type": "DataFlowReference",
+								"parameters": {}
+							}
+						},
+						{
+							"name": "Union1"
+						},
+						{
+							"name": "Union2"
+						},
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "Window1"
+						},
+						{
+							"name": "Filter1"
+						},
+						{
+							"name": "Select1"
+						}
+					],
+					"script": "source(output(\n\t\tSalesOrderID as integer,\n\t\tRevisionNumber as integer,\n\t\tOrderDate as timestamp,\n\t\tDueDate as timestamp,\n\t\tShipDate as timestamp,\n\t\tStatus as integer,\n\t\tOnlineOrderFlag as boolean,\n\t\tSalesOrderNumber as string,\n\t\tPurchaseOrderNumber as string,\n\t\tAccountNumber as string,\n\t\tCustomerID as integer,\n\t\tShipToAddressID as integer,\n\t\tBillToAddressID as integer,\n\t\tShipMethod as string,\n\t\tCreditCardApprovalCode as string,\n\t\tSubTotal as decimal(19,4),\n\t\tTaxAmt as decimal(19,4),\n\t\tFreight as decimal(19,4),\n\t\tTotalDue as decimal(19,4),\n\t\tComment as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/SalesOrderHeader') ~> SalesHeaderSilver\nSalesHeaderSilver compose(mapColumn(\n\t\tDateColumn = ShipDate\n\t),\n\tcomposition: 'Time_Flowlet') ~> ShipDateFlowlet@(output1)\nSalesHeaderSilver compose(mapColumn(\n\t\tDateColumn = OrderDate\n\t),\n\tcomposition: 'Time_Flowlet') ~> OrderDateFlowlet@(output1)\nSalesHeaderSilver compose(mapColumn(\n\t\tDateColumn = DueDate\n\t),\n\tcomposition: 'Time_Flowlet') ~> DueDateFlowlet@(output1)\nDueDateFlowlet@output1, ShipDateFlowlet@output1 union(byName: true)~> Union1\nUnion1, OrderDateFlowlet@output1 union(byName: true)~> Union2\nSelect1 alterRow(upsertIf(true())) ~> AlterRow1\nUnion2 window(over(DateID),\n\tasc(Date, true),\n\tRowNum = rowNumber()) ~> Window1\nWindow1 filter(RowNum==1) ~> Filter1\nFilter1 select(mapColumn(\n\t\tDateID,\n\t\tDate,\n\t\tYear,\n\t\tQuarter,\n\t\tMonth,\n\t\tWeekOfYear,\n\t\tDayOfMonth\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nAlterRow1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/gold/DimTime',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['DateID'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> DimTime"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/Time_Flowlet')]",
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Deduplication_Flowlet')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Flowlet",
+				"typeProperties": {
+					"sources": [],
+					"sinks": [],
+					"transformations": [
+						{
+							"name": "Window1"
+						},
+						{
+							"name": "Filter1"
+						},
+						{
+							"name": "Select1"
+						},
+						{
+							"name": "input1"
+						},
+						{
+							"name": "output1"
+						}
+					],
+					"scriptLines": [
+						"input(output(",
+						"          IDColumn as long,",
+						"          OrderColum as timestamp",
+						"     ),",
+						"     order: 0) ~> input1",
+						"input1 window(over(PrimaryKey = IDColumn),",
+						"     asc(OrderColum, true),",
+						"     RowNum = rowNumber()) ~> Window1",
+						"Window1 filter(RowNum==1) ~> Filter1",
+						"Filter1 select(mapColumn(",
+						"          IDColumn,",
+						"          OrderColum",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> Select1",
+						"Select1 output() ~> output1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/StoreWatermark_Flowlet')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Flowlet",
+				"typeProperties": {
+					"sources": [],
+					"sinks": [],
+					"transformations": [
+						{
+							"name": "AddTableName"
+						},
+						{
+							"name": "CalculateMaxKey"
+						},
+						{
+							"name": "AlterRow"
+						},
+						{
+							"name": "input1"
+						},
+						{
+							"name": "TargetWatermark"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     pTableName as string",
+						"}",
+						"input(output(",
+						"          IdColumn as long",
+						"     ),",
+						"     order: 0) ~> input1",
+						"input1 derive(TableName = $pTableName) ~> AddTableName",
+						"AddTableName aggregate(groupBy(TableName),",
+						"     LastKey = max(IdColumn)) ~> CalculateMaxKey",
+						"CalculateMaxKey alterRow(updateIf(TableName==\"DimProduct\")) ~> AlterRow",
+						"AlterRow output() ~> TargetWatermark"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Time_Flowlet')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Child flows/Gold/Flowlets"
+				},
+				"type": "Flowlet",
+				"typeProperties": {
+					"sources": [],
+					"sinks": [],
+					"transformations": [
+						{
+							"name": "DerivedColumn1"
+						},
+						{
+							"name": "input1"
+						},
+						{
+							"name": "output1"
+						}
+					],
+					"scriptLines": [
+						"input(output(",
+						"          DateColumn as timestamp",
+						"     ),",
+						"     order: 0) ~> input1",
+						"input1 derive(DateID = toLong(toString(DateColumn,'yyyyMMdd')),",
+						"          Date = toDate(DateColumn),",
+						"          Year = year(DateColumn),",
+						"          Quarter = ceil(month(DateColumn)/3),",
+						"          Month = month(DateColumn),",
+						"          DayOfMonth = dayOfMonth(DateColumn),",
+						"          WeekOfYear = weekOfYear(DateColumn)) ~> DerivedColumn1",
+						"DerivedColumn1 output() ~> output1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
+			"type": "Microsoft.Synapse/workspaces/credentials",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/QueryDelta')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 CompanyName,Phone,DateInserted\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/bronze/Customer/',\n        FORMAT = 'DELTA'\n    ) AS [result]\nWHERE  CustomerID=1 Order by DateInserted Desc\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 3')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "delete FROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/bronze/Customer/',\n        FORMAT = 'DELTA'\n    ) AS [result]\nWHERE  DateInserted >'2021-11-19'",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 4')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/silver/Product/',\n        FORMAT = 'DELTA'\n    ) AS [result]\n    where productID=680\norder by ProductId;\n-- SELECT\n--     count(*) \n-- FROM\n--     OPENROWSET(\n--         BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/gold/DimProduct/',\n--         FORMAT = 'DELTA'\n--     ) AS [result]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 5')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/raw/parquet/SalesLTProduct.parquet',\n        FORMAT = 'PARQUET'\n    ) AS [result]\nwhere ProductId<710",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 6')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT \n    TOP 100 ProductID,Name,RowSignature,EffectiveFromDate,EffectiveToDate,IsActive,ProductKey\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/gold/DimProduct/',\n        FORMAT = 'DELTA'\n    ) AS [result]\nwhere ProductId<707 order by ProductId,dateinserted desc",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 7')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/gold/DimTime/',\n        FORMAT = 'DELTA'\n    ) AS [result]\nOrder by DateID",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 8')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/silver/SalesOrderHeader/',\n        FORMAT = 'DELTA'\n    ) AS [result]\nwhere SalesOrderID>71923 \norder by SalesOrderID,DateInserted desc",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ValidateWatermarks')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/gold/dimWatermarks/',\n        FORMAT = 'DELTA'\n    ) AS [result]\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/MDA-SurrKey')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "3ad2cb49-202d-44e2-919f-2530380da9b4"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_sparksql",
+						"display_name": "sql"
+					},
+					"language_info": {
+						"name": "sql"
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"CREATE DATABASE IF NOT EXISTS gold LOCATION \"/delta/gold/\""
+						],
+						"outputs": [],
+						"execution_count": 2
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"CREATE TABLE IF NOT EXISTS  gold.DimProduct \r\n",
+							"(\r\n",
+							"ProductID int  ,\r\n",
+							"Name string ,\r\n",
+							"ProductNumber string ,\r\n",
+							"Color string ,\r\n",
+							"StandardCost decimal ,\r\n",
+							"ListPrice decimal ,\r\n",
+							"Size string ,\r\n",
+							"Weight decimal ,\r\n",
+							"ProductCategoryID int ,\r\n",
+							"ProductModelID int ,\r\n",
+							"SellStartDate timestamp ,\r\n",
+							"SellEndDate timestamp ,\r\n",
+							"DiscontinuedDate timestamp ,\r\n",
+							"ThumbNailPhoto string ,\r\n",
+							"ThumbnailPhotoFileName string ,\r\n",
+							"rowguid string ,\r\n",
+							"ModifiedDate string, \r\n",
+							"DateInserted timestamp,\r\n",
+							"ProductCategory string,\r\n",
+							"ProductModel string\r\n",
+							")\r\n",
+							"\r\n",
+							"USING DELTA "
+						],
+						"outputs": [],
+						"execution_count": 5
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"drop table dimWatermarks"
+						],
+						"outputs": [],
+						"execution_count": 42
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"delete from gold.DimProduct "
+						],
+						"outputs": [],
+						"execution_count": 7
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"select * from gold.DimProduct "
+						],
+						"outputs": [],
+						"execution_count": 8
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "python"
+							}
+						},
+						"source": [
+							"%%pyspark\r\n",
+							"df=spark.read.format(\"delta\").load(\"/delta/gold/DimProduct\")\r\n",
+							"df.printSchema()"
+						],
+						"outputs": [],
+						"execution_count": 4
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"CREATE TABLE IF NOT EXISTS dimWatermarks\r\n",
+							"(\r\n",
+							"    TableName string,\r\n",
+							"    LastKey bigint\r\n",
+							")\r\n",
+							"USING DELTA\r\n",
+							"LOCATION \"/delta/gold/dimWatermarks\""
+						],
+						"outputs": [],
+						"execution_count": 43
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"delete from dimWatermarks"
+						],
+						"outputs": [],
+						"execution_count": 48
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"insert into dimWatermarks VALUES (\"DimProduct\",0)"
+						],
+						"outputs": [],
+						"execution_count": 49
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"refresh table dimWatermarks"
+						],
+						"outputs": [],
+						"execution_count": 51
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"select * from dimWatermarks"
+						],
+						"outputs": [],
+						"execution_count": 52
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"Use gold;\r\n",
+							"DROP TABLE IF EXISTS DimProduct;\r\n",
+							"CREATE TABLE DimProduct (\r\n",
+							"\tProductID int,\r\n",
+							"\tName string,\r\n",
+							"\tProductNumber string,\r\n",
+							"\tColor string,\r\n",
+							"\tStandardCost float,\r\n",
+							"\tListPrice float,\r\n",
+							"\tSize string,\r\n",
+							"\tWeight float,\r\n",
+							"\tProductCategoryID int,\r\n",
+							"\tProductModelID int,\r\n",
+							"\tSellStartDate timestamp,\r\n",
+							"\tSellEndDate timestamp,\r\n",
+							"\tDiscontinuedDate timestamp,\r\n",
+							"\tThumbNailPhoto string,\r\n",
+							"\tThumbnailPhotoFileName string,\r\n",
+							"\trowguid string,\r\n",
+							"\tModifiedDate timestamp,\r\n",
+							"\tSourceFileName string,\r\n",
+							"\tDateInserted timestamp,\r\n",
+							"\tProductCategory string,\r\n",
+							"\tProductModel string,\r\n",
+							"\tRowSignature bigint,\r\n",
+							"\tEffectiveFromDate timestamp,\r\n",
+							"\tEffectiveToDate timestamp,\r\n",
+							"\tIsActive int,\r\n",
+							"\tProductKey bigint\r\n",
+							"\t)\r\n",
+							"\tUSING DELTA\r\n",
+							"\tLOCATION  '/delta/gold/DimProduct/'\r\n",
+							"\t\r\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/MDA_DDL')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "MySpark",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "3e235a52-2b5d-496d-97ea-078370f4a00b"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "sql"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/9dd2c898-8111-4322-91d6-a039a00bd513/resourceGroups/Synapse-study/providers/Microsoft.Synapse/workspaces/synapse-study-ws/bigDataPools/MySpark",
+						"name": "MySpark",
+						"type": "Spark",
+						"endpoint": "https://synapse-study-ws.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/MySpark",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"CREATE DATABASE IF NOT EXISTS bronze LOCATION \"/delta/bronze/\""
+						],
+						"outputs": [],
+						"execution_count": 6
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"USE bronze;\r\n",
+							"CREATE TABLE IF NOT EXISTS  Address USING DELTA LOCATION \"/delta/bronze/Address/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS  Customer USING DELTA LOCATION \"/delta/bronze/Customer/\";       \r\n",
+							"CREATE TABLE IF NOT EXISTS  CustomerAddress USING DELTA LOCATION \"/delta/bronze/CustomerAddress/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS  Product USING DELTA LOCATION \"/delta/bronze/Product/\";  \r\n",
+							"CREATE TABLE IF NOT EXISTS  ProductCategory USING DELTA LOCATION \"/delta/bronze/ProductCategory/\";       \r\n",
+							"CREATE TABLE IF NOT EXISTS  ProductDescription USING DELTA LOCATION \"/delta/bronze/ProductDescription/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS  ProductModel USING DELTA LOCATION \"/delta/bronze/ProductModel/\";       \r\n",
+							"CREATE TABLE IF NOT EXISTS  SalesOrderDetail USING DELTA LOCATION \"/delta/bronze/SalesOrderDetail/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS  SalesOrderHeader USING DELTA LOCATION \"/delta/bronze/SalesOrderHeader/\";                   "
+						],
+						"outputs": [],
+						"execution_count": 7
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"Select count(*) from bronze.SalesOrderDetail"
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"CREATE DATABASE IF NOT EXISTS gold LOCATION \"/delta/gold/\""
+						],
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"CREATE TABLE IF NOT EXISTS  DimProduct USING DELTA \r\n",
+							"LOCATION \"/delta/gold/DimProduct/\"; "
+						],
+						"outputs": [],
+						"execution_count": 2
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							""
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Notebook 2')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "MySpark",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 1,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "1",
+						"spark.dynamicAllocation.maxExecutors": "1",
+						"spark.autotune.trackingId": "ffbe9c72-eccb-4b90-a347-af9befda03cb"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/9dd2c898-8111-4322-91d6-a039a00bd513/resourceGroups/Synapse-study/providers/Microsoft.Synapse/workspaces/synapse-study-ws/bigDataPools/MySpark",
+						"name": "MySpark",
+						"type": "Spark",
+						"endpoint": "https://synapse-study-ws.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/MySpark",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"source": [
+							"%%pyspark\n",
+							"blob_account_name = \"synstg\"\n",
+							"blob_container_name = \"syn-fs\"\n",
+							"from pyspark.sql import SparkSession\n",
+							"\n",
+							"sc = SparkSession.builder.getOrCreate()\n",
+							"token_library = sc._jvm.com.microsoft.azure.synapse.tokenlibrary.TokenLibrary\n",
+							"blob_sas_token = token_library.getConnectionString(\"AzureBlobStorage2\")\n",
+							"\n",
+							"spark.conf.set(\n",
+							"    'fs.azure.sas.%s.%s.blob.core.windows.net' % (blob_container_name, blob_account_name),\n",
+							"    blob_sas_token)\n",
+							"df = spark.read.load('wasbs://syn-fs@synstg.blob.core.windows.net/delta/bronze/Customer/part-00000-ccdd7cb1-35a1-4a11-b9cc-6e4fd68418b5-c000.snappy.parquet', format='parquet')\n",
+							"display(df.limit(10))"
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							""
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Database 1')]",
+			"type": "Microsoft.Synapse/workspaces/databases",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"Ddls": [
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"Properties": {
+								"IsSyMSCDMDatabase": true
+							},
+							"Name": "Database 1",
+							"EntityType": "DATABASE",
+							"Source": {
+								"Provider": "ADLS",
+								"Location": "abfss://fa-fs@fikratstg.dfs.core.windows.net/Database 1",
+								"Properties": {
+									"FormatType": "csv",
+									"LinkedServiceName": "synapse-study-ws-WorkspaceDefaultStorage"
+								}
+							}
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					}
+				]
+			},
+			"dependsOn": []
+		}
+	]
+}
