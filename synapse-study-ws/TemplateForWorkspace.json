@@ -26,6 +26,14 @@
 		"synapse-study-ws-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://fikratstg.dfs.core.windows.net"
+		},
+		"WeeklyTrigger_properties_pipeline_parameters_MyStartDate": {
+			"type": "string",
+			"defaultValue": "trigger().outputs.windowStartTime"
+		},
+		"WeeklyTrigger_properties_pipeline_parameters_MyEndDate": {
+			"type": "string",
+			"defaultValue": "trigger().outputs.windowEndTime"
 		}
 	},
 	"variables": {
@@ -56,11 +64,11 @@
 								"type": "DataFlowReference",
 								"parameters": {
 									"WindowStart": {
-										"value": "trigger().outputs.windowStartTime",
+										"value": "@pipeline().parameters.MyStartDate",
 										"type": "Expression"
 									},
 									"WndowEnd": {
-										"value": "trigger().outputs.windowEndTime",
+										"value": "@pipeline().parameters.MyEndDate",
 										"type": "Expression"
 									}
 								},
@@ -69,7 +77,8 @@
 									"SalesOrderHeaderBronze": {},
 									"SalesOrderDetailSilver": {},
 									"SalesOrderHeaderSilver": {}
-								}
+								},
+								"linkedServiceParameters": {}
 							},
 							"staging": {},
 							"compute": {
@@ -84,13 +93,22 @@
 					"elapsedTimeMetric": {},
 					"cancelAfter": {}
 				},
+				"parameters": {
+					"MyStartDate": {
+						"type": "string"
+					},
+					"MyEndDate": {
+						"type": "string"
+					}
+				},
 				"folder": {
 					"name": "Silver"
 				},
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_SalesOrder')]"
+				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_SalesOrder')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
 			]
 		},
 		{
@@ -2015,7 +2033,10 @@
 						"referenceName": "BronzeSilverSalesOrders",
 						"type": "PipelineReference"
 					},
-					"parameters": {}
+					"parameters": {
+						"MyStartDate": "[parameters('WeeklyTrigger_properties_pipeline_parameters_MyStartDate')]",
+						"MyEndDate": "[parameters('WeeklyTrigger_properties_pipeline_parameters_MyEndDate')]"
+					}
 				},
 				"type": "TumblingWindowTrigger",
 				"typeProperties": {
