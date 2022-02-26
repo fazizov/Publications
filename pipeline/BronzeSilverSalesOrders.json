@@ -19,8 +19,14 @@
 						"referenceName": "DataflowBronzeSilver_SalesOrder",
 						"type": "DataFlowReference",
 						"parameters": {
-							"WindowStart": "addDays(currentTimestamp(),-1)",
-							"WndowEnd": "currentTimestamp()"
+							"WindowStart": {
+								"value": "trigger().outputs.windowStartTime",
+								"type": "Expression"
+							},
+							"WndowEnd": {
+								"value": "trigger().outputs.windowEndTime",
+								"type": "Expression"
+							}
 						}
 					},
 					"compute": {
