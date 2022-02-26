@@ -37,6 +37,14 @@
 				}
 			}
 		],
+		"parameters": {
+			"MyStartDate": {
+				"type": "string"
+			},
+			"MyEndDate": {
+				"type": "string"
+			}
+		},
 		"folder": {
 			"name": "Silver"
 		},
