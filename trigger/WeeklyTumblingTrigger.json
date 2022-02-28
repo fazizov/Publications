@@ -1,0 +1,29 @@
+{
+	"name": "WeeklyTumblingTrigger",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipeline": {
+			"pipelineReference": {
+				"referenceName": "BronzeSilverSalesOrders",
+				"type": "PipelineReference"
+			},
+			"parameters": {
+				"MyStartDate": "@trigger().outputs.windowStartTime",
+				"MyEndDate": "@trigger().outputs.windowEndTime"
+			}
+		},
+		"type": "TumblingWindowTrigger",
+		"typeProperties": {
+			"frequency": "Hour",
+			"interval": 168,
+			"startTime": "2022-01-01T01:26:00Z",
+			"delay": "00:00:00",
+			"maxConcurrency": 50,
+			"retryPolicy": {
+				"intervalInSeconds": 30
+			},
+			"dependsOn": []
+		}
+	}
+}
