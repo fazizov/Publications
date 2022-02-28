@@ -20,11 +20,11 @@
 		"synapse-study-ws-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"value": "https://fikratstg.dfs.core.windows.net"
 		},
-		"WeeklyTrigger_properties_pipeline_parameters_MyStartDate": {
-			"value": "trigger().outputs.windowStartTime"
+		"WeeklyTumblingTrigger_properties_pipeline_parameters_MyStartDate": {
+			"value": "@trigger().outputs.windowStartTime"
 		},
-		"WeeklyTrigger_properties_pipeline_parameters_MyEndDate": {
-			"value": "trigger().outputs.windowEndTime"
+		"WeeklyTumblingTrigger_properties_pipeline_parameters_MyEndDate": {
+			"value": "@trigger().outputs.windowEndTime"
 		}
 	}
 }

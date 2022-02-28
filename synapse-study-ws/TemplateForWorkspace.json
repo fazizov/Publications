@@ -27,13 +27,13 @@
 			"type": "string",
 			"defaultValue": "https://fikratstg.dfs.core.windows.net"
 		},
-		"WeeklyTrigger_properties_pipeline_parameters_MyStartDate": {
+		"WeeklyTumblingTrigger_properties_pipeline_parameters_MyStartDate": {
 			"type": "string",
-			"defaultValue": "trigger().outputs.windowStartTime"
+			"defaultValue": "@trigger().outputs.windowStartTime"
 		},
-		"WeeklyTrigger_properties_pipeline_parameters_MyEndDate": {
+		"WeeklyTumblingTrigger_properties_pipeline_parameters_MyEndDate": {
 			"type": "string",
-			"defaultValue": "trigger().outputs.windowEndTime"
+			"defaultValue": "@trigger().outputs.windowEndTime"
 		}
 	},
 	"variables": {
@@ -77,8 +77,7 @@
 									"SalesOrderHeaderBronze": {},
 									"SalesOrderDetailSilver": {},
 									"SalesOrderHeaderSilver": {}
-								},
-								"linkedServiceParameters": {}
+								}
 							},
 							"staging": {},
 							"compute": {
@@ -2022,27 +2021,27 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/WeeklyTrigger')]",
+			"name": "[concat(parameters('workspaceName'), '/WeeklyTumblingTrigger')]",
 			"type": "Microsoft.Synapse/workspaces/triggers",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"annotations": [],
-				"runtimeState": "Started",
+				"runtimeState": "Stopped",
 				"pipeline": {
 					"pipelineReference": {
 						"referenceName": "BronzeSilverSalesOrders",
 						"type": "PipelineReference"
 					},
 					"parameters": {
-						"MyStartDate": "[parameters('WeeklyTrigger_properties_pipeline_parameters_MyStartDate')]",
-						"MyEndDate": "[parameters('WeeklyTrigger_properties_pipeline_parameters_MyEndDate')]"
+						"MyStartDate": "[parameters('WeeklyTumblingTrigger_properties_pipeline_parameters_MyStartDate')]",
+						"MyEndDate": "[parameters('WeeklyTumblingTrigger_properties_pipeline_parameters_MyEndDate')]"
 					}
 				},
 				"type": "TumblingWindowTrigger",
 				"typeProperties": {
 					"frequency": "Hour",
 					"interval": 168,
-					"startTime": "2022-02-26T00:00:00Z",
+					"startTime": "2022-01-01T01:26:00Z",
 					"delay": "00:00:00",
 					"maxConcurrency": 50,
 					"retryPolicy": {
