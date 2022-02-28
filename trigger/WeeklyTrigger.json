@@ -3,16 +3,6 @@
 	"properties": {
 		"annotations": [],
 		"runtimeState": "Started",
-		"pipeline": {
-			"pipelineReference": {
-				"referenceName": "BronzeSilverSalesOrders",
-				"type": "PipelineReference"
-			},
-			"parameters": {
-				"MyStartDate": "trigger().outputs.windowStartTime",
-				"MyEndDate": "trigger().outputs.windowEndTime"
-			}
-		},
 		"type": "TumblingWindowTrigger",
 		"typeProperties": {
 			"frequency": "Hour",
