@@ -21,10 +21,10 @@
 			"value": "https://fikratstg.dfs.core.windows.net"
 		},
 		"WeeklyTumblingTrigger_properties_pipeline_parameters_MyStartDate": {
-			"value": "@trigger().outputs.windowStartTime"
+			"value": "@formatDateTime(trigger().outputs.windowStartTime,'yyyy-MM-dd')"
 		},
 		"WeeklyTumblingTrigger_properties_pipeline_parameters_MyEndDate": {
-			"value": "@trigger().outputs.windowEndTime"
+			"value": "@formatDateTime(trigger().outputs.windowEndTime,'yyyy-MM-dd')"
 		}
 	}
 }

@@ -29,11 +29,11 @@
 		},
 		"WeeklyTumblingTrigger_properties_pipeline_parameters_MyStartDate": {
 			"type": "string",
-			"defaultValue": "@trigger().outputs.windowStartTime"
+			"defaultValue": "@formatDateTime(trigger().outputs.windowStartTime,'yyyy-MM-dd')"
 		},
 		"WeeklyTumblingTrigger_properties_pipeline_parameters_MyEndDate": {
 			"type": "string",
-			"defaultValue": "@trigger().outputs.windowEndTime"
+			"defaultValue": "@formatDateTime(trigger().outputs.windowEndTime,'yyyy-MM-dd')"
 		}
 	},
 	"variables": {
@@ -64,11 +64,11 @@
 								"type": "DataFlowReference",
 								"parameters": {
 									"WindowStart": {
-										"value": "@pipeline().parameters.MyStartDate",
+										"value": "'@{pipeline().parameters.MyStartDate}'",
 										"type": "Expression"
 									},
-									"WndowEnd": {
-										"value": "@pipeline().parameters.MyEndDate",
+									"WindowEnd": {
+										"value": "'@{pipeline().parameters.MyStartDate}'",
 										"type": "Expression"
 									}
 								},
@@ -77,7 +77,8 @@
 									"SalesOrderHeaderBronze": {},
 									"SalesOrderDetailSilver": {},
 									"SalesOrderHeaderSilver": {}
-								}
+								},
+								"linkedServiceParameters": {}
 							},
 							"staging": {},
 							"compute": {
@@ -98,6 +99,14 @@
 					},
 					"MyEndDate": {
 						"type": "string"
+					}
+				},
+				"variables": {
+					"dt": {
+						"type": "String"
+					},
+					"dt2": {
+						"type": "String"
 					}
 				},
 				"folder": {
@@ -132,16 +141,14 @@
 							"dataflow": {
 								"referenceName": "DataflowBronzeSilver_SalesOrder",
 								"type": "DataFlowReference",
-								"parameters": {
-									"WindowStart": "addDays(currentTimestamp(),-1)",
-									"WndowEnd": "currentTimestamp()"
-								},
+								"parameters": {},
 								"datasetParameters": {
 									"SalesOrderDetailBronze": {},
 									"SalesOrderHeaderBronze": {},
 									"SalesOrderDetailSilver": {},
 									"SalesOrderHeaderSilver": {}
-								}
+								},
+								"linkedServiceParameters": {}
 							},
 							"staging": {},
 							"compute": {
@@ -162,7 +169,8 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_SalesOrder')]"
+				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_SalesOrder')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
 			]
 		},
 		{
@@ -187,16 +195,14 @@
 							"dataflow": {
 								"referenceName": "DataflowBronzeSilver_SalesOrder",
 								"type": "DataFlowReference",
-								"parameters": {
-									"WindowStart": "toTimestamp(\"1900-01-01\",\"yyyy-MM-dd\")",
-									"WndowEnd": "currentTimestamp()"
-								},
+								"parameters": {},
 								"datasetParameters": {
 									"SalesOrderDetailBronze": {},
 									"SalesOrderHeaderBronze": {},
 									"SalesOrderDetailSilver": {},
 									"SalesOrderHeaderSilver": {}
-								}
+								},
+								"linkedServiceParameters": {}
 							},
 							"staging": {},
 							"compute": {
@@ -217,8 +223,53 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_SalesOrder')]"
+				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_SalesOrder')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/BronzeSilverSalesOrders_copy1')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Set variable1",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "dt",
+							"value": {
+								"value": "@formatDateTime(trigger().outputs.windowStartTime,'yyyy-MM-dd')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"MyStartDate": {
+						"type": "string"
+					},
+					"MyEndDate": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"dt": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Silver"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('workspaceName'), '/BronzeToSilver')]",
@@ -1147,6 +1198,80 @@
 				"[concat(variables('workspaceId'), '/dataflows/DataflowLandingBronzeJson')]",
 				"[concat(variables('workspaceId'), '/integrationRuntimes/IntegrationRuntime1')]",
 				"[concat(variables('workspaceId'), '/dataflows/DataflowLandingBronzeParquet')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/CopySQLBronze')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "SQL_Landing_JSON",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "CopyPipeline_Landing_Json",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "SQL_Landing_Parquet",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "CopyPipeline_Landing_Parquet",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "LandingBronze",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "SQL_Landing_Parquet",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "SQL_Landing_JSON",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "CopyRawToDelta",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/CopyPipeline_Landing_Json')]",
+				"[concat(variables('workspaceId'), '/pipelines/CopyPipeline_Landing_Parquet')]",
+				"[concat(variables('workspaceId'), '/pipelines/CopyRawToDelta')]"
 			]
 		},
 		{
@@ -2277,7 +2402,7 @@
 							"name": "AlterRowSalesOrderHeaders"
 						}
 					],
-					"script": "parameters{\n\tWindowStart as timestamp (toTimestamp(\"2008-06-08\",\"yyyy-MM-dd\")),\n\tWndowEnd as timestamp (toTimestamp(\"2008-06-09\",\"yyyy-MM-dd\"))\n}\nsource(output(\n\t\tSalesOrderID as integer,\n\t\tSalesOrderDetailID as integer,\n\t\tOrderQty as integer,\n\t\tProductID as integer,\n\t\tUnitPrice as decimal(19,4),\n\t\tUnitPriceDiscount as decimal(19,4),\n\t\tLineTotal as decimal(38,6),\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/bronze/SalesOrderDetail') ~> SalesOrderDetailBronze\nsource(output(\n\t\tSalesOrderID as integer,\n\t\tRevisionNumber as integer,\n\t\tOrderDate as timestamp,\n\t\tDueDate as timestamp,\n\t\tShipDate as timestamp,\n\t\tStatus as integer,\n\t\tOnlineOrderFlag as boolean,\n\t\tSalesOrderNumber as string,\n\t\tPurchaseOrderNumber as string,\n\t\tAccountNumber as string,\n\t\tCustomerID as integer,\n\t\tShipToAddressID as integer,\n\t\tBillToAddressID as integer,\n\t\tShipMethod as string,\n\t\tCreditCardApprovalCode as string,\n\t\tSubTotal as decimal(19,4),\n\t\tTaxAmt as decimal(19,4),\n\t\tFreight as decimal(19,4),\n\t\tTotalDue as decimal(19,4),\n\t\tComment as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/bronze/SalesOrderHeader') ~> SalesOrderHeaderBronze\nExists1 window(over(SalesOrderID,\n\t\tSalesOrderDetailID),\n\tdesc(ModifiedDate, true),\n\tRowVersion = rowNumber()) ~> RankSalesOrderDetails\nRankSalesOrderDetails filter(RowVersion==1) ~> FilterSalesOrderDetails\nSalesOrderHeaderBronze filter(ModifiedDate>=$WindowStart && ModifiedDate <$WndowEnd) ~> FilterTimeRange\nSalesOrderDetailBronze, FilterTimeRange exists(SalesOrderDetailBronze@SalesOrderID == SalesOrderHeaderBronze@SalesOrderID,\n\tnegate:false,\n\tbroadcast: 'auto')~> Exists1\nFilterSalesOrderDetails select(mapColumn(\n\t\tSalesOrderID,\n\t\tSalesOrderDetailID,\n\t\tOrderQty,\n\t\tProductID,\n\t\tUnitPrice,\n\t\tUnitPriceDiscount,\n\t\tLineTotal,\n\t\trowguid,\n\t\tModifiedDate,\n\t\tSourceFileName,\n\t\tDateInserted\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectSalesOrderDetails\nFilterTimeRange window(over(SalesOrderID),\n\tdesc(DateInserted, true),\n\tRowVersion = rowNumber()) ~> RankSalesOrderHeaders\nRankSalesOrderHeaders filter(RowVersion==1) ~> FilterSalesOrderHeaders\nFilterSalesOrderHeaders select(mapColumn(\n\t\tSalesOrderID,\n\t\tRevisionNumber,\n\t\tOrderDate,\n\t\tDueDate,\n\t\tShipDate,\n\t\tStatus,\n\t\tOnlineOrderFlag,\n\t\tSalesOrderNumber,\n\t\tPurchaseOrderNumber,\n\t\tAccountNumber,\n\t\tCustomerID,\n\t\tShipToAddressID,\n\t\tBillToAddressID,\n\t\tShipMethod,\n\t\tCreditCardApprovalCode,\n\t\tSubTotal,\n\t\tTaxAmt,\n\t\tFreight,\n\t\tTotalDue,\n\t\tComment,\n\t\trowguid,\n\t\tModifiedDate,\n\t\tSourceFileName,\n\t\tDateInserted\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectSalesOrderHeaders\nSelectSalesOrderDetails alterRow(upsertIf(true())) ~> AlterRowSalesOrderDetails\nSelectSalesOrderHeaders alterRow(upsertIf(true())) ~> AlterRowSalesOrderHeaders\nAlterRowSalesOrderDetails sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/SalesOrderDetail',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['SalesOrderID','SalesOrderDetailID'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SalesOrderDetailSilver\nAlterRowSalesOrderHeaders sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/SalesOrderHeader',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['SalesOrderID'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SalesOrderHeaderSilver"
+					"script": "parameters{\n\tWindowStart as string ('2022-01-01'),\n\tWindowEnd as string ('2022-01-08')\n}\nsource(output(\n\t\tSalesOrderID as integer,\n\t\tSalesOrderDetailID as integer,\n\t\tOrderQty as integer,\n\t\tProductID as integer,\n\t\tUnitPrice as decimal(19,4),\n\t\tUnitPriceDiscount as decimal(19,4),\n\t\tLineTotal as decimal(38,6),\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/bronze/SalesOrderDetail') ~> SalesOrderDetailBronze\nsource(output(\n\t\tSalesOrderID as integer,\n\t\tRevisionNumber as integer,\n\t\tOrderDate as timestamp,\n\t\tDueDate as timestamp,\n\t\tShipDate as timestamp,\n\t\tStatus as integer,\n\t\tOnlineOrderFlag as boolean,\n\t\tSalesOrderNumber as string,\n\t\tPurchaseOrderNumber as string,\n\t\tAccountNumber as string,\n\t\tCustomerID as integer,\n\t\tShipToAddressID as integer,\n\t\tBillToAddressID as integer,\n\t\tShipMethod as string,\n\t\tCreditCardApprovalCode as string,\n\t\tSubTotal as decimal(19,4),\n\t\tTaxAmt as decimal(19,4),\n\t\tFreight as decimal(19,4),\n\t\tTotalDue as decimal(19,4),\n\t\tComment as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tSourceFileName as string,\n\t\tDateInserted as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/bronze/SalesOrderHeader') ~> SalesOrderHeaderBronze\nExists1 window(over(SalesOrderID,\n\t\tSalesOrderDetailID),\n\tdesc(ModifiedDate, true),\n\tRowVersion = rowNumber()) ~> RankSalesOrderDetails\nRankSalesOrderDetails filter(RowVersion==1) ~> FilterSalesOrderDetails\nSalesOrderHeaderBronze filter(ModifiedDate>=toTimestamp($WindowStart,'yyyy-MM-dd')  && ModifiedDate <toTimestamp($WindowEnd,'yyyy-MM-dd')) ~> FilterTimeRange\nSalesOrderDetailBronze, FilterTimeRange exists(SalesOrderDetailBronze@SalesOrderID == SalesOrderHeaderBronze@SalesOrderID,\n\tnegate:false,\n\tbroadcast: 'auto')~> Exists1\nFilterSalesOrderDetails select(mapColumn(\n\t\tSalesOrderID,\n\t\tSalesOrderDetailID,\n\t\tOrderQty,\n\t\tProductID,\n\t\tUnitPrice,\n\t\tUnitPriceDiscount,\n\t\tLineTotal,\n\t\trowguid,\n\t\tModifiedDate,\n\t\tSourceFileName,\n\t\tDateInserted\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectSalesOrderDetails\nFilterTimeRange window(over(SalesOrderID),\n\tdesc(DateInserted, true),\n\tRowVersion = rowNumber()) ~> RankSalesOrderHeaders\nRankSalesOrderHeaders filter(RowVersion==1) ~> FilterSalesOrderHeaders\nFilterSalesOrderHeaders select(mapColumn(\n\t\tSalesOrderID,\n\t\tRevisionNumber,\n\t\tOrderDate,\n\t\tDueDate,\n\t\tShipDate,\n\t\tStatus,\n\t\tOnlineOrderFlag,\n\t\tSalesOrderNumber,\n\t\tPurchaseOrderNumber,\n\t\tAccountNumber,\n\t\tCustomerID,\n\t\tShipToAddressID,\n\t\tBillToAddressID,\n\t\tShipMethod,\n\t\tCreditCardApprovalCode,\n\t\tSubTotal,\n\t\tTaxAmt,\n\t\tFreight,\n\t\tTotalDue,\n\t\tComment,\n\t\trowguid,\n\t\tModifiedDate,\n\t\tSourceFileName,\n\t\tDateInserted\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectSalesOrderHeaders\nSelectSalesOrderDetails alterRow(upsertIf(true())) ~> AlterRowSalesOrderDetails\nSelectSalesOrderHeaders alterRow(upsertIf(true())) ~> AlterRowSalesOrderHeaders\nAlterRowSalesOrderDetails sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/SalesOrderDetail',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['SalesOrderID','SalesOrderDetailID'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SalesOrderDetailSilver\nAlterRowSalesOrderHeaders sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tcontainer: 'syn-fs',\n\tfolderPath: 'delta/silver/SalesOrderHeader',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['SalesOrderID'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SalesOrderHeaderSilver"
 				}
 			},
 			"dependsOn": [
@@ -3145,6 +3270,26 @@
 			"properties": {
 				"content": {
 					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/silver/SalesOrderHeader/',\n        FORMAT = 'DELTA'\n    ) AS [result]\nwhere SalesOrderID>71923 \norder by SalesOrderID,DateInserted desc",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 9')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/bronze/SalesOrderHeader/',\n        FORMAT = 'DELTA'\n    ) AS [result]\norder by SalesOrderID, dateinserted desc",
 					"metadata": {
 						"language": "sql"
 					},
