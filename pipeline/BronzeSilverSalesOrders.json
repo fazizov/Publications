@@ -39,12 +39,10 @@
 		],
 		"parameters": {
 			"MyStartDate": {
-				"type": "string",
-				"defaultValue": "\"2022-01-01\""
+				"type": "string"
 			},
 			"MyEndDate": {
-				"type": "string",
-				"defaultValue": "\"2022-01-08\""
+				"type": "string"
 			}
 		},
 		"folder": {
