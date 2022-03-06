@@ -1,0 +1,34 @@
+{
+	"name": "BronzeSilverSalesOrders_copy1",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "dt",
+					"value": "@formatDateTime(trigger().outputs.windowStartTime,'yyyy-MM-dd')"
+				}
+			}
+		],
+		"parameters": {
+			"MyStartDate": {
+				"type": "string"
+			},
+			"MyEndDate": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"dt": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Silver"
+		},
+		"annotations": []
+	}
+}
