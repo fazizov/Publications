@@ -20,7 +20,7 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"WindowStart": "toTimestamp(\"1900-01-01\",\"yyyy-MM-dd\")",
-							"WndowEnd": "currentTimestamp()"
+							"WindowEnd": "currentTimestamp()"
 						}
 					},
 					"compute": {

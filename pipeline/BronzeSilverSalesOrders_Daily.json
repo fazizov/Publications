@@ -20,7 +20,7 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"WindowStart": "addDays(currentTimestamp(),-1)",
-							"WndowEnd": "currentTimestamp()"
+							"WindowEnd": "currentTimestamp()"
 						}
 					},
 					"compute": {

@@ -23,7 +23,7 @@
 								"value": "@pipeline().parameters.MyStartDate",
 								"type": "Expression"
 							},
-							"WndowEnd": {
+							"WindowEnd": {
 								"value": "@pipeline().parameters.MyEndDate",
 								"type": "Expression"
 							}
