@@ -17,11 +17,7 @@
 				"typeProperties": {
 					"dataflow": {
 						"referenceName": "DataflowBronzeSilver_SalesOrder",
-						"type": "DataFlowReference",
-						"parameters": {
-							"WindowStart": "addDays(currentTimestamp(),-1)",
-							"WindowEnd": "currentTimestamp()"
-						}
+						"type": "DataFlowReference"
 					},
 					"compute": {
 						"coreCount": 8,
