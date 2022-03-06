@@ -24,7 +24,7 @@
 								"type": "Expression"
 							},
 							"WindowEnd": {
-								"value": "'@{pipeline().parameters.MyStartDate}'",
+								"value": "'@{pipeline().parameters.MyEndDate}'",
 								"type": "Expression"
 							}
 						}
