@@ -9,8 +9,8 @@
 				"type": "PipelineReference"
 			},
 			"parameters": {
-				"MyStartDate": "@formatDateTime(trigger().outputs.windowStartTime,'yyyy-MM-dd')",
-				"MyEndDate": "@formatDateTime(trigger().outputs.windowEndTime,'yyyy-MM-dd')"
+				"MyStartDate": "@trigger().outputs.windowStartTime",
+				"MyEndDate": "@trigger().outputs.windowEndTime"
 			}
 		},
 		"type": "TumblingWindowTrigger",
