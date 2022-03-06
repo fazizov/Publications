@@ -5,20 +5,7 @@
 			{
 				"name": "DataflowBronzeSilverSalesOrders",
 				"type": "ExecuteDataFlow",
-				"dependsOn": [
-					{
-						"activity": "Set variable1",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Set variable1_copy1",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "1.00:00:00",
 					"retry": 0,
@@ -33,11 +20,11 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"WindowStart": {
-								"value": "'@{variables('dt')}'",
+								"value": "'@{pipeline().parameters.MyStartDate}'",
 								"type": "Expression"
 							},
 							"WindowEnd": {
-								"value": "'@{variables('dt2')}'",
+								"value": "'@{pipeline().parameters.MyStartDate}'",
 								"type": "Expression"
 							}
 						}
@@ -47,32 +34,6 @@
 						"computeType": "General"
 					},
 					"traceLevel": "Fine"
-				}
-			},
-			{
-				"name": "Set variable1",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "dt",
-					"value": {
-						"value": "@formatDateTime(pipeline().parameters.MyStartDate,'yyyy-MM-dd')",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Set variable1_copy1",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "dt2",
-					"value": {
-						"value": "@formatDateTime(pipeline().parameters.MyEndDate,'yyyy-MM-dd')",
-						"type": "Expression"
-					}
 				}
 			}
 		],
