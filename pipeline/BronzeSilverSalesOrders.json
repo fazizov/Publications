@@ -11,6 +11,12 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "Set variable1_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"policy": {
@@ -27,11 +33,11 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"WindowStart": {
-								"value": "@pipeline().parameters.MyStartDate",
+								"value": "'@{variables('dt')}'",
 								"type": "Expression"
 							},
 							"WindowEnd": {
-								"value": "@pipeline().parameters.MyEndDate",
+								"value": "'@{variables('dt2')}'",
 								"type": "Expression"
 							}
 						}
@@ -50,7 +56,23 @@
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "dt",
-					"value": "@formatDateTime(trigger().outputs.windowStartTime,'yyyy-MM-dd')"
+					"value": {
+						"value": "@formatDateTime(pipeline().parameters.MyStartDate,'yyyy-MM-dd')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set variable1_copy1",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "dt2",
+					"value": {
+						"value": "@formatDateTime(pipeline().parameters.MyEndDate,'yyyy-MM-dd')",
+						"type": "Expression"
+					}
 				}
 			}
 		],
@@ -64,6 +86,9 @@
 		},
 		"variables": {
 			"dt": {
+				"type": "String"
+			},
+			"dt2": {
 				"type": "String"
 			}
 		},
