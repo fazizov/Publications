@@ -2,7 +2,17 @@
 	"name": "WeeklyTumblingTrigger",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Started",
+		"runtimeState": "Stopped",
+		"pipeline": {
+			"pipelineReference": {
+				"referenceName": "BronzeSilverSalesOrders",
+				"type": "PipelineReference"
+			},
+			"parameters": {
+				"MyStartDate": "@formatDateTime(trigger().outputs.windowStartTime,'yyyy-MM-dd')",
+				"MyEndDate": "@formatDateTime(trigger().outputs.windowEndTime,'yyyy-MM-dd')"
+			}
+		},
 		"type": "TumblingWindowTrigger",
 		"typeProperties": {
 			"frequency": "Hour",
