@@ -26,14 +26,6 @@
 		"synapse-study-ws-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://fikratstg.dfs.core.windows.net"
-		},
-		"WeeklyTumblingTrigger_properties_pipeline_parameters_MyStartDate": {
-			"type": "string",
-			"defaultValue": "@formatDateTime(trigger().outputs.windowStartTime,'yyyy-MM-dd')"
-		},
-		"WeeklyTumblingTrigger_properties_pipeline_parameters_MyEndDate": {
-			"type": "string",
-			"defaultValue": "@formatDateTime(trigger().outputs.windowEndTime,'yyyy-MM-dd')"
 		}
 	},
 	"variables": {
@@ -77,8 +69,7 @@
 									"SalesOrderHeaderBronze": {},
 									"SalesOrderDetailSilver": {},
 									"SalesOrderHeaderSilver": {}
-								},
-								"linkedServiceParameters": {}
+								}
 							},
 							"staging": {},
 							"compute": {
@@ -115,8 +106,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_SalesOrder')]",
-				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_SalesOrder')]"
 			]
 		},
 		{
@@ -147,8 +137,7 @@
 									"SalesOrderHeaderBronze": {},
 									"SalesOrderDetailSilver": {},
 									"SalesOrderHeaderSilver": {}
-								},
-								"linkedServiceParameters": {}
+								}
 							},
 							"staging": {},
 							"compute": {
@@ -169,8 +158,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_SalesOrder')]",
-				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_SalesOrder')]"
 			]
 		},
 		{
@@ -201,8 +189,7 @@
 									"SalesOrderHeaderBronze": {},
 									"SalesOrderDetailSilver": {},
 									"SalesOrderHeaderSilver": {}
-								},
-								"linkedServiceParameters": {}
+								}
 							},
 							"staging": {},
 							"compute": {
@@ -223,8 +210,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_SalesOrder')]",
-				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeSilver_SalesOrder')]"
 			]
 		},
 		{
@@ -2146,40 +2132,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/WeeklyTumblingTrigger')]",
-			"type": "Microsoft.Synapse/workspaces/triggers",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipeline": {
-					"pipelineReference": {
-						"referenceName": "BronzeSilverSalesOrders",
-						"type": "PipelineReference"
-					},
-					"parameters": {
-						"MyStartDate": "[parameters('WeeklyTumblingTrigger_properties_pipeline_parameters_MyStartDate')]",
-						"MyEndDate": "[parameters('WeeklyTumblingTrigger_properties_pipeline_parameters_MyEndDate')]"
-					}
-				},
-				"type": "TumblingWindowTrigger",
-				"typeProperties": {
-					"frequency": "Hour",
-					"interval": 168,
-					"startTime": "2022-01-01T01:26:00Z",
-					"delay": "00:00:00",
-					"maxConcurrency": 2,
-					"retryPolicy": {
-						"intervalInSeconds": 30
-					},
-					"dependsOn": []
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/pipelines/BronzeSilverSalesOrders')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
 			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
 			"apiVersion": "2019-06-01-preview",
@@ -3289,7 +3241,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"content": {
-					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/bronze/SalesOrderHeader/',\n        FORMAT = 'DELTA'\n    ) AS [result]\norder by SalesOrderID, dateinserted desc",
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/bronze/SalesOrderHeader/',\n        FORMAT = 'DELTA'\n    ) AS [result]\norder by modifieddate desc",
 					"metadata": {
 						"language": "sql"
 					},
