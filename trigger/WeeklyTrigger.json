@@ -2,7 +2,7 @@
 	"name": "WeeklyTrigger",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Stopped",
+		"runtimeState": "Started",
 		"pipeline": {
 			"pipelineReference": {
 				"referenceName": "BronzeSilverSalesOrders",
