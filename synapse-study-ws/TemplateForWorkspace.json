@@ -26,6 +26,14 @@
 		"synapse-study-ws-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://fikratstg.dfs.core.windows.net"
+		},
+		"WeeklyTrigger_properties_pipeline_parameters_MyStartDate": {
+			"type": "string",
+			"defaultValue": "@formatDateTime(trigger().outputs.windowStartTime,'yyyy-MM-dd')"
+		},
+		"WeeklyTrigger_properties_pipeline_parameters_MyEndDate": {
+			"type": "string",
+			"defaultValue": "@formatDateTime(trigger().outputs.windowEndTime,'yyyy-MM-dd')"
 		}
 	},
 	"variables": {
@@ -3901,6 +3909,40 @@
 			},
 			"dependsOn": [],
 			"location": "eastus"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WeeklyTrigger')]",
+			"type": "Microsoft.Synapse/workspaces/triggers",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipeline": {
+					"pipelineReference": {
+						"referenceName": "BronzeSilverSalesOrders",
+						"type": "PipelineReference"
+					},
+					"parameters": {
+						"MyStartDate": "[parameters('WeeklyTrigger_properties_pipeline_parameters_MyStartDate')]",
+						"MyEndDate": "[parameters('WeeklyTrigger_properties_pipeline_parameters_MyEndDate')]"
+					}
+				},
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Hour",
+					"interval": 168,
+					"startTime": "2022-01-01T00:00:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 1,
+					"retryPolicy": {
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/BronzeSilverSalesOrders')]"
+			]
 		}
 	]
 }
