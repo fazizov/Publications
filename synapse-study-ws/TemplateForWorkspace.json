@@ -26,14 +26,6 @@
 		"synapse-study-ws-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://fikratstg.dfs.core.windows.net"
-		},
-		"WeeklyTrigger_properties_pipeline_parameters_MyStartDate": {
-			"type": "string",
-			"defaultValue": "@formatDateTime(trigger().outputs.windowStartTime,'yyyy-MM-dd')"
-		},
-		"WeeklyTrigger_properties_pipeline_parameters_MyEndDate": {
-			"type": "string",
-			"defaultValue": "@formatDateTime(trigger().outputs.windowEndTime,'yyyy-MM-dd')"
 		}
 	},
 	"variables": {
@@ -3886,73 +3878,29 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/Database 1')]",
-			"type": "Microsoft.Synapse/workspaces/databases",
+			"name": "[concat(parameters('workspaceName'), '/MySpark')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
-				"Ddls": [
-					{
-						"ActionType": "CREATE",
-						"OldEntity": null,
-						"NewEntity": {
-							"Origin": {
-								"Type": "SPARK"
-							},
-							"Properties": {
-								"IsSyMSCDMDatabase": true
-							},
-							"Name": "Database 1",
-							"EntityType": "DATABASE",
-							"Source": {
-								"Provider": "ADLS",
-								"Location": "abfss://fa-fs@fikratstg.dfs.core.windows.net/Database 1",
-								"Properties": {
-									"FormatType": "csv",
-									"LinkedServiceName": "synapse-study-ws-WorkspaceDefaultStorage"
-								}
-							}
-						},
-						"Source": {
-							"Type": "SPARK"
-						}
-					}
-				]
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/WeeklyTrigger')]",
-			"type": "Microsoft.Synapse/workspaces/triggers",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Stopped",
-				"pipeline": {
-					"pipelineReference": {
-						"referenceName": "BronzeSilverSalesOrders",
-						"type": "PipelineReference"
-					},
-					"parameters": {
-						"MyStartDate": "[parameters('WeeklyTrigger_properties_pipeline_parameters_MyStartDate')]",
-						"MyEndDate": "[parameters('WeeklyTrigger_properties_pipeline_parameters_MyEndDate')]"
-					}
+				"autoPause": {
+					"enabled": true,
+					"delayInMinutes": 15
 				},
-				"type": "TumblingWindowTrigger",
-				"typeProperties": {
-					"frequency": "Hour",
-					"interval": 168,
-					"startTime": "2022-01-01T00:00:00Z",
-					"delay": "00:00:00",
-					"maxConcurrency": 1,
-					"retryPolicy": {
-						"intervalInSeconds": 30
-					},
-					"dependsOn": []
-				}
+				"autoScale": {
+					"enabled": true,
+					"maxNodeCount": 4,
+					"minNodeCount": 3
+				},
+				"nodeCount": 10,
+				"nodeSize": "Small",
+				"nodeSizeFamily": "MemoryOptimized",
+				"sparkVersion": "2.4",
+				"isComputeIsolationEnabled": false,
+				"sessionLevelPackagesEnabled": false,
+				"annotations": []
 			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/pipelines/BronzeSilverSalesOrders')]"
-			]
+			"dependsOn": [],
+			"location": "eastus"
 		}
 	]
 }
