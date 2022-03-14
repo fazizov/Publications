@@ -2140,6 +2140,40 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/WeeklyTrigger')]",
+			"type": "Microsoft.Synapse/workspaces/triggers",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipeline": {
+					"pipelineReference": {
+						"referenceName": "BronzeSilverSalesOrders",
+						"type": "PipelineReference"
+					},
+					"parameters": {
+						"MyStartDate": "[parameters('WeeklyTrigger_properties_pipeline_parameters_MyStartDate')]",
+						"MyEndDate": "[parameters('WeeklyTrigger_properties_pipeline_parameters_MyEndDate')]"
+					}
+				},
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Hour",
+					"interval": 168,
+					"startTime": "2022-01-01T00:00:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 1,
+					"retryPolicy": {
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/BronzeSilverSalesOrders')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
 			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
 			"apiVersion": "2019-06-01-preview",
@@ -3909,40 +3943,6 @@
 			},
 			"dependsOn": [],
 			"location": "eastus"
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/WeeklyTrigger')]",
-			"type": "Microsoft.Synapse/workspaces/triggers",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipeline": {
-					"pipelineReference": {
-						"referenceName": "BronzeSilverSalesOrders",
-						"type": "PipelineReference"
-					},
-					"parameters": {
-						"MyStartDate": "[parameters('WeeklyTrigger_properties_pipeline_parameters_MyStartDate')]",
-						"MyEndDate": "[parameters('WeeklyTrigger_properties_pipeline_parameters_MyEndDate')]"
-					}
-				},
-				"type": "TumblingWindowTrigger",
-				"typeProperties": {
-					"frequency": "Hour",
-					"interval": 168,
-					"startTime": "2022-01-01T00:00:00Z",
-					"delay": "00:00:00",
-					"maxConcurrency": 1,
-					"retryPolicy": {
-						"intervalInSeconds": 30
-					},
-					"dependsOn": []
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/pipelines/BronzeSilverSalesOrders')]"
-			]
 		}
 	]
 }
