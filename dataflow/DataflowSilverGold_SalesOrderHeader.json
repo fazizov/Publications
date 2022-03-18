@@ -23,7 +23,11 @@
 				}
 			],
 			"sinks": [],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "GetCusomer"
+				}
+			],
 			"scriptLines": [
 				"source(allowSchemaDrift: true,",
 				"     validateSchema: false,",
@@ -34,7 +38,11 @@
 				"     ignoreNoFilesFound: false,",
 				"     format: 'delta',",
 				"     container: 'syn-fs',",
-				"     folderPath: 'delta/silver/Customer') ~> CustomerSilver"
+				"     folderPath: 'delta/silver/Customer') ~> CustomerSilver",
+				"SalesOrderHeaderSilver, CustomerSilver lookup(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> GetCusomer"
 			]
 		}
 	}
