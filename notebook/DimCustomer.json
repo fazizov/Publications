@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "6f17a8d8-e7bf-4c5e-8c6d-0db0845b3b3e"
+				"spark.autotune.trackingId": "f009ba51-45b3-440b-926d-9e1bd30307a8"
 			}
 		},
 		"metadata": {
@@ -71,13 +71,15 @@
 					",CompanyName_Prev\tstring\t\r\n",
 					",UserName\tstring\t\r\n",
 					",Domain\tstring\r\n",
+					",EffectiveFromDate timestamp\r\n",
+					",EffectiveToDate timestamp\r\n",
 					",RowSignature bigint\r\n",
 					",CustomerKey bigint)\r\n",
 					"USING DELTA\r\n",
 					"LOCATION '/delta/gold/DimCustomer/'\r\n",
 					""
 				],
-				"execution_count": 7
+				"execution_count": 8
 			},
 			{
 				"cell_type": "code",
