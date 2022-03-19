@@ -1,0 +1,17 @@
+{
+	"name": "Dataflow1",
+	"properties": {
+		"folder": {
+			"name": "Child flows/Gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				""
+			]
+		}
+	}
+}

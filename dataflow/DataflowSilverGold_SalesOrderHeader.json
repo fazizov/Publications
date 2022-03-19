@@ -19,7 +19,7 @@
 						"referenceName": "AzureBlobStorage1",
 						"type": "LinkedServiceReference"
 					},
-					"name": "CustomerSilver"
+					"name": "CustomerGold"
 				}
 			],
 			"sinks": [],
@@ -88,8 +88,8 @@
 				"     ignoreNoFilesFound: false,",
 				"     format: 'delta',",
 				"     container: 'syn-fs',",
-				"     folderPath: 'delta/silver/Customer') ~> CustomerSilver",
-				"SalesOrderHeaderSilver, CustomerSilver lookup(SalesOrderHeaderSilver@CustomerID == CustomerSilver@CustomerID,",
+				"     folderPath: 'delta/silver/Customer') ~> CustomerGold",
+				"SalesOrderHeaderSilver, CustomerGold lookup(SalesOrderHeaderSilver@CustomerID == CustomerGold@CustomerID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetCusomer"
