@@ -1,0 +1,81 @@
+{
+	"name": "DimCustomer",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "MySpark",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "0e63610e-817b-43e9-add2-0ec9992c93ba"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "python"
+			},
+			"language_info": {
+				"name": "sql"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/9dd2c898-8111-4322-91d6-a039a00bd513/resourceGroups/Synapse-study/providers/Microsoft.Synapse/workspaces/synapse-study-ws/bigDataPools/MySpark",
+				"name": "MySpark",
+				"type": "Spark",
+				"endpoint": "https://synapse-study-ws.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/MySpark",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "2.4",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": false
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"source": [
+					"CREATE TABLE DimCustomer (\r\n",
+					" CustomerKey bigint\r\n",
+					",CompanyName\tstring\t\r\n",
+					",CustomerID\tint\t\r\n",
+					",EmailAddress string\t\r\n",
+					",FirstName\tstring\t\r\n",
+					",LastName\tstring\t\r\n",
+					",MiddleName\tstring\t\r\n",
+					",ModifiedDate timestamp\r\n",
+					",NameStyle\tstring\t\r\n",
+					",PasswordHash string\t\r\n",
+					",PasswordSalt string\t\r\n",
+					",Phone\tstring\t\r\n",
+					",SalesPerson\tstring\t\r\n",
+					",Suffix\tstring\t\r\n",
+					",Title\tstring\t\r\n",
+					",rowguid\tstring\t\r\n",
+					",SourceFileName\tstring\t\r\n",
+					",DateInserted\ttimestamp\t\r\n",
+					",CompanyName_Prev\tstring\t\r\n",
+					",UserName\tstring\t\r\n",
+					",Domain\tstring)"
+				],
+				"execution_count": null
+			}
+		]
+	}
+}
