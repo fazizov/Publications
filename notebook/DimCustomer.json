@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "d98b700b-04e2-4762-baac-3765005538d3"
+				"spark.autotune.trackingId": "00bfefd4-9e34-4488-973f-71acc44abbad"
 			}
 		},
 		"metadata": {
@@ -68,9 +68,10 @@
 					",CompanyName_Prev\tstring\t\r\n",
 					",UserName\tstring\t\r\n",
 					",Domain\tstring\r\n",
+					",RowSignature bigint\r\n",
 					",EffectiveFromDate timestamp\r\n",
 					",EffectiveToDate timestamp\r\n",
-					",RowSignature bigint\r\n",
+					",IsActive int\r\n",
 					",CustomerKey bigint)\r\n",
 					"USING DELTA\r\n",
 					"LOCATION '/delta/gold/DimCustomer/'\r\n",
@@ -92,7 +93,10 @@
 					}
 				},
 				"source": [
-					"DROP TABLE DimCustomer"
+					"INSERT INTO DimCustomer (CustomerID,CompanyName,EmailAddress,FirstName,LastName,MiddleName,ModifiedDate,NameStyle,Phone,SalesPerson\r\n",
+					",Suffix\t,Title,DateInserted\t,CompanyName_Prev,UserName,Domain,RowSignature,EffectiveFromDate,EffectiveToDate,IsActive,CustomerKey)\r\n",
+					"VALUES (-1,'Unknown','Unknown','Unknown','Unknown','Unknown',NULL,NULL,NULL,NULL\r\n",
+					",NULL,NULL,NULL,NULL,NULL,NULL,NULL,CURRENT_TIMESTAMP(),cast('9099-01-01' as timestamp),1,-1)"
 				],
 				"execution_count": 9
 			},
