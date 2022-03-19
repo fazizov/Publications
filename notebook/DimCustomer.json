@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "8de65710-7894-4957-aee9-6fc1b0199c0f"
+				"spark.autotune.trackingId": "f11ee0bf-9764-4044-a3d4-2394fb7a8c88"
 			}
 		},
 		"metadata": {
@@ -78,7 +78,7 @@
 					"LOCATION '/delta/gold/DimCustomer'\r\n",
 					""
 				],
-				"execution_count": 3
+				"execution_count": 4
 			},
 			{
 				"cell_type": "code",
