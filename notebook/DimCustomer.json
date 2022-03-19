@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "f11ee0bf-9764-4044-a3d4-2394fb7a8c88"
+				"spark.autotune.trackingId": "da2bb605-0caf-4425-8767-6d96275b514f"
 			}
 		},
 		"metadata": {
@@ -75,10 +75,10 @@
 					",RowSignature bigint\r\n",
 					",CustomerKey bigint)\r\n",
 					"USING DELTA\r\n",
-					"LOCATION '/delta/gold/DimCustomer'\r\n",
+					"LOCATION '/delta/gold/DimCustomer/'\r\n",
 					""
 				],
-				"execution_count": 4
+				"execution_count": 5
 			},
 			{
 				"cell_type": "code",
