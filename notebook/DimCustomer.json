@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "f0191ba1-2d6f-4bfe-8d80-c8aaa5d00120"
+				"spark.autotune.trackingId": "d98b700b-04e2-4762-baac-3765005538d3"
 			}
 		},
 		"metadata": {
@@ -60,13 +60,10 @@
 					",MiddleName\tstring\t\r\n",
 					",ModifiedDate timestamp\r\n",
 					",NameStyle\tstring\t\r\n",
-					",PasswordHash string\t\r\n",
-					",PasswordSalt string\t\r\n",
 					",Phone\tstring\t\r\n",
 					",SalesPerson\tstring\t\r\n",
 					",Suffix\tstring\t\r\n",
 					",Title\tstring\t\r\n",
-					",SourceFileName\tstring\t\r\n",
 					",DateInserted\ttimestamp\t\r\n",
 					",CompanyName_Prev\tstring\t\r\n",
 					",UserName\tstring\t\r\n",
@@ -79,7 +76,7 @@
 					"LOCATION '/delta/gold/DimCustomer/'\r\n",
 					""
 				],
-				"execution_count": 8
+				"execution_count": 1
 			},
 			{
 				"cell_type": "code",
