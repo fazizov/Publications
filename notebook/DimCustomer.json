@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "6873aa38-3b86-4fd6-b24c-97144120118d"
+				"spark.autotune.trackingId": "8de65710-7894-4957-aee9-6fc1b0199c0f"
 			}
 		},
 		"metadata": {
@@ -52,8 +52,7 @@
 				"cell_type": "code",
 				"source": [
 					"CREATE TABLE DimCustomer (\r\n",
-					" CustomerKey bigint\r\n",
-					",CompanyName\tstring\t\r\n",
+					" CompanyName\tstring\t\r\n",
 					",CustomerID\tint\t\r\n",
 					",EmailAddress string\t\r\n",
 					",FirstName\tstring\t\r\n",
@@ -72,12 +71,14 @@
 					",DateInserted\ttimestamp\t\r\n",
 					",CompanyName_Prev\tstring\t\r\n",
 					",UserName\tstring\t\r\n",
-					",Domain\tstring)\r\n",
+					",Domain\tstring\r\n",
+					",RowSignature bigint\r\n",
+					",CustomerKey bigint)\r\n",
 					"USING DELTA\r\n",
 					"LOCATION '/delta/gold/DimCustomer'\r\n",
 					""
 				],
-				"execution_count": 2
+				"execution_count": 3
 			},
 			{
 				"cell_type": "code",
