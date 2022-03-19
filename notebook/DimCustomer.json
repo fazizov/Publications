@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "20384f87-e5ef-4e48-ae7a-a7fe49820de9"
+				"spark.autotune.trackingId": "e89c3755-4f9e-48f7-87fd-b6f8f2abf1c4"
 			}
 		},
 		"metadata": {
@@ -52,7 +52,7 @@
 				"cell_type": "code",
 				"source": [
 					"CREATE TABLE DimCustomer (\r\n",
-					" CustomerKey bigint\r\n",
+					" CustomerKey int\r\n",
 					",CompanyName\tstring\t\r\n",
 					",CustomerID\tint\t\r\n",
 					",EmailAddress string\t\r\n",
@@ -74,7 +74,7 @@
 					",UserName\tstring\t\r\n",
 					",Domain\tstring)"
 				],
-				"execution_count": 1
+				"execution_count": 2
 			},
 			{
 				"cell_type": "code",
