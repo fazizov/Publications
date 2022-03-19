@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "da2bb605-0caf-4425-8767-6d96275b514f"
+				"spark.autotune.trackingId": "6f17a8d8-e7bf-4c5e-8c6d-0db0845b3b3e"
 			}
 		},
 		"metadata": {
@@ -52,8 +52,8 @@
 				"cell_type": "code",
 				"source": [
 					"CREATE TABLE DimCustomer (\r\n",
-					" CompanyName\tstring\t\r\n",
-					",CustomerID\tint\t\r\n",
+					"CustomerID\tint\t    \r\n",
+					",CompanyName\tstring\t\r\n",
 					",EmailAddress string\t\r\n",
 					",FirstName\tstring\t\r\n",
 					",LastName\tstring\t\r\n",
@@ -66,7 +66,6 @@
 					",SalesPerson\tstring\t\r\n",
 					",Suffix\tstring\t\r\n",
 					",Title\tstring\t\r\n",
-					",rowguid\tstring\t\r\n",
 					",SourceFileName\tstring\t\r\n",
 					",DateInserted\ttimestamp\t\r\n",
 					",CompanyName_Prev\tstring\t\r\n",
@@ -78,7 +77,25 @@
 					"LOCATION '/delta/gold/DimCustomer/'\r\n",
 					""
 				],
-				"execution_count": 5
+				"execution_count": 7
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"select * from DimCustomer"
+				],
+				"execution_count": 6
 			},
 			{
 				"cell_type": "code",
