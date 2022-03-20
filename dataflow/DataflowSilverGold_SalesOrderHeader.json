@@ -43,9 +43,6 @@
 					"name": "GetCustomerKey"
 				},
 				{
-					"name": "Select2"
-				},
-				{
 					"name": "AlterRow"
 				},
 				{
@@ -53,9 +50,6 @@
 				},
 				{
 					"name": "GetOrderDateKey"
-				},
-				{
-					"name": "GetShipDateKey"
 				},
 				{
 					"name": "Select1"
@@ -145,27 +139,7 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetCustomerKey",
-				"GetShipDateKey select(mapColumn(",
-				"          SalesOrderID,",
-				"          RevisionNumber,",
-				"          Status,",
-				"          OnlineOrderFlag,",
-				"          SalesOrderNumber,",
-				"          PurchaseOrderNumber,",
-				"          AccountNumber,",
-				"          SubTotal,",
-				"          TaxAmt,",
-				"          Freight,",
-				"          TotalDue,",
-				"          ModifiedDate,",
-				"          DateInserted,",
-				"          CustomerKey,",
-				"          OrderDateKey,",
-				"          ShipDateKey = DateID",
-				"     ),",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> Select2",
-				"Select2 alterRow(upsertIf(true())) ~> AlterRow",
+				"Select1 alterRow(upsertIf(true())) ~> AlterRow",
 				"SalesOrderHeaderSilver derive(CustomerID = iifNull(CustomerID, -1,CustomerID),",
 				"          ShipDate = iifNull(ShipDate, toDate('1900-01-01','yyyy-MM-dd'), ShipDate) ,",
 				"          OrderDate = iifNull(OrderDate, toDate('1900-01-01','yyyy-MM-dd'), OrderDate)) ~> ConvertEmptyKeys",
@@ -173,10 +147,6 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetOrderDateKey",
-				"Select1, ConvertDate lookup(ShipDate == Date,",
-				"     multiple: false,",
-				"     pickup: 'any',",
-				"     broadcast: 'auto')~> GetShipDateKey",
 				"GetOrderDateKey select(mapColumn(",
 				"          SalesOrderID,",
 				"          RevisionNumber,",
