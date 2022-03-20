@@ -40,7 +40,7 @@
 			],
 			"transformations": [
 				{
-					"name": "GetCusomer"
+					"name": "GetCustomerKey"
 				},
 				{
 					"name": "SelectColumns"
@@ -49,7 +49,16 @@
 					"name": "AlterRow"
 				},
 				{
-					"name": "derivedColumn1"
+					"name": "ConvertEmptyKeys"
+				},
+				{
+					"name": "GetDueDateKey"
+				},
+				{
+					"name": "GetShipDateKey"
+				},
+				{
+					"name": "select1"
 				}
 			],
 			"scriptLines": [
@@ -114,21 +123,30 @@
 				"     format: 'delta',",
 				"     container: 'syn-fs',",
 				"     folderPath: 'delta/gold/DimCustomer') ~> DimCustomerGold",
-				"source(allowSchemaDrift: true,",
+				"source(output(",
+				"          DateID as long,",
+				"          Date as date,",
+				"          Year as integer,",
+				"          Quarter as long,",
+				"          Month as integer,",
+				"          WeekOfYear as integer,",
+				"          DayOfMonth as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
 				"     format: 'delta',",
 				"     container: 'syn-fs',",
 				"     folderPath: 'delta/gold/DimTime') ~> DimTimeGold",
-				"derivedColumn1, DimCustomerGold lookup(SalesOrderHeaderSilver@CustomerID == DimCustomerGold@CustomerID,",
+				"ConvertEmptyKeys, DimCustomerGold lookup(ConvertEmptyKeys@CustomerID == DimCustomerGold@CustomerID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
-				"     broadcast: 'auto')~> GetCusomer",
-				"GetCusomer select(mapColumn(",
+				"     broadcast: 'auto')~> GetCustomerKey",
+				"GetShipDateKey select(mapColumn(",
 				"          SalesOrderID,",
 				"          RevisionNumber,",
 				"          OrderDate,",
-				"          DueDate,",
+				"          DueDate = SalesOrderHeaderSilver@DueDate,",
 				"          ShipDate = SalesOrderHeaderSilver@ShipDate,",
 				"          Status,",
 				"          OnlineOrderFlag,",
@@ -146,13 +164,42 @@
 				"          Comment,",
 				"          ModifiedDate = SalesOrderHeaderSilver@ModifiedDate,",
 				"          DateInserted = SalesOrderHeaderSilver@DateInserted,",
-				"          CustomerKey",
+				"          CustomerKey,",
+				"          DueDateKey,",
+				"          ShipDateKey = DateID",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> SelectColumns",
 				"SelectColumns alterRow(upsertIf(true())) ~> AlterRow",
 				"SalesOrderHeaderSilver derive(CustomerID = iifNull(CustomerID, -1,CustomerID),",
-				"          ShipDate = iifNull(ShipDate, '1900-01-01', ShipDate)) ~> derivedColumn1",
+				"          ShipDate = iifNull(ShipDate, toTimestamp('1900-01-01','yyyy-MM-dd'), ShipDate),",
+				"          DueDate = iifNull(DueDate, toTimestamp('1900-01-01','yyyy-MM-dd'), DueDate)) ~> ConvertEmptyKeys",
+				"GetCustomerKey, DimTimeGold lookup(DueDate == Date,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> GetDueDateKey",
+				"select1, DimTimeGold lookup(ShipDate == Date,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> GetShipDateKey",
+				"GetDueDateKey select(mapColumn(",
+				"          SalesOrderID,",
+				"          RevisionNumber,",
+				"          Status,",
+				"          OnlineOrderFlag,",
+				"          SalesOrderNumber,",
+				"          PurchaseOrderNumber,",
+				"          PurchaseOrderNumber = ShipMethod,",
+				"          SubTotal,",
+				"          TaxAmt,",
+				"          Freight,",
+				"          TotalDue,",
+				"          ShipDate,",
+				"          DueDateKey = DateID,",
+				"          CustomerKey",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
