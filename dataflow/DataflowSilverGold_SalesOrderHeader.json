@@ -26,6 +26,9 @@
 			"transformations": [
 				{
 					"name": "GetCusomer"
+				},
+				{
+					"name": "select1"
 				}
 			],
 			"scriptLines": [
@@ -93,7 +96,33 @@
 				"SalesOrderHeaderSilver, DimCustomerGold lookup(SalesOrderHeaderSilver@CustomerID == DimCustomerGold@CustomerID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
-				"     broadcast: 'auto')~> GetCusomer"
+				"     broadcast: 'auto')~> GetCusomer",
+				"GetCusomer select(mapColumn(",
+				"          RevisionNumber,",
+				"          OrderDate,",
+				"          DueDate,",
+				"          ShipDate,",
+				"          Status,",
+				"          OnlineOrderFlag,",
+				"          SalesOrderNumber,",
+				"          PurchaseOrderNumber,",
+				"          AccountNumber,",
+				"          CustomerID = SalesOrderHeaderSilver@CustomerID,",
+				"          ShipToAddressID,",
+				"          BillToAddressID,",
+				"          ShipMethod,",
+				"          CreditCardApprovalCode,",
+				"          SubTotal,",
+				"          TaxAmt,",
+				"          Freight,",
+				"          TotalDue,",
+				"          Comment,",
+				"          ModifiedDate = SalesOrderHeaderSilver@ModifiedDate,",
+				"          DateInserted = SalesOrderHeaderSilver@DateInserted,",
+				"          CustomerKey",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1"
 			]
 		}
 	}
