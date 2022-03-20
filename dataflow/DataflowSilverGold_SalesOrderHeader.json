@@ -20,6 +20,13 @@
 						"type": "LinkedServiceReference"
 					},
 					"name": "DimCustomerGold"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimTimeGold"
 				}
 			],
 			"sinks": [
@@ -40,6 +47,9 @@
 				},
 				{
 					"name": "AlterRow"
+				},
+				{
+					"name": "derivedColumn1"
 				}
 			],
 			"scriptLines": [
@@ -104,7 +114,13 @@
 				"     format: 'delta',",
 				"     container: 'syn-fs',",
 				"     folderPath: 'delta/gold/DimCustomer') ~> DimCustomerGold",
-				"SalesOrderHeaderSilver, DimCustomerGold lookup(SalesOrderHeaderSilver@CustomerID == DimCustomerGold@CustomerID,",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     container: 'syn-fs',",
+				"     folderPath: 'delta/gold/DimTime') ~> DimTimeGold",
+				"derivedColumn1, DimCustomerGold lookup(SalesOrderHeaderSilver@CustomerID == DimCustomerGold@CustomerID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetCusomer",
@@ -113,7 +129,7 @@
 				"          RevisionNumber,",
 				"          OrderDate,",
 				"          DueDate,",
-				"          ShipDate,",
+				"          ShipDate = SalesOrderHeaderSilver@ShipDate,",
 				"          Status,",
 				"          OnlineOrderFlag,",
 				"          SalesOrderNumber,",
@@ -135,6 +151,8 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> SelectColumns",
 				"SelectColumns alterRow(upsertIf(true())) ~> AlterRow",
+				"SalesOrderHeaderSilver derive(CustomerID = iifNull(CustomerID, -1,CustomerID),",
+				"          ShipDate = iifNull(ShipDate, '1900-01-01', ShipDate)) ~> derivedColumn1",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
