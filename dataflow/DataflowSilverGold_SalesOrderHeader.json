@@ -43,7 +43,7 @@
 					"name": "GetCustomerKey"
 				},
 				{
-					"name": "SelectColumns"
+					"name": "Select2"
 				},
 				{
 					"name": "AlterRow"
@@ -52,13 +52,13 @@
 					"name": "ConvertEmptyKeys"
 				},
 				{
-					"name": "GetDueDateKey"
+					"name": "GetOrderDateKey"
 				},
 				{
 					"name": "GetShipDateKey"
 				},
 				{
-					"name": "select1"
+					"name": "Select1"
 				}
 			],
 			"scriptLines": [
@@ -145,9 +145,6 @@
 				"GetShipDateKey select(mapColumn(",
 				"          SalesOrderID,",
 				"          RevisionNumber,",
-				"          OrderDate,",
-				"          DueDate = SalesOrderHeaderSilver@DueDate,",
-				"          ShipDate = SalesOrderHeaderSilver@ShipDate,",
 				"          Status,",
 				"          OnlineOrderFlag,",
 				"          SalesOrderNumber,",
@@ -165,24 +162,25 @@
 				"          ModifiedDate = SalesOrderHeaderSilver@ModifiedDate,",
 				"          DateInserted = SalesOrderHeaderSilver@DateInserted,",
 				"          CustomerKey,",
-				"          DueDateKey,",
+				"          OrderDateKey,",
 				"          ShipDateKey = DateID",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> SelectColumns",
-				"SelectColumns alterRow(upsertIf(true())) ~> AlterRow",
+				"     skipDuplicateMapOutputs: true) ~> Select2",
+				"Select2 alterRow(upsertIf(true())) ~> AlterRow",
 				"SalesOrderHeaderSilver derive(CustomerID = iifNull(CustomerID, -1,CustomerID),",
 				"          ShipDate = iifNull(ShipDate, toTimestamp('1900-01-01','yyyy-MM-dd'), ShipDate),",
-				"          DueDate = iifNull(DueDate, toTimestamp('1900-01-01','yyyy-MM-dd'), DueDate)) ~> ConvertEmptyKeys",
-				"GetCustomerKey, DimTimeGold lookup(DueDate == Date,",
+				"          DueDate = iifNull(DueDate, toTimestamp('1900-01-01','yyyy-MM-dd'), DueDate),",
+				"          OrderDate = iifNull(OrderDate, toTimestamp('1900-01-01','yyyy-MM-dd'), OrderDate)) ~> ConvertEmptyKeys",
+				"GetCustomerKey, DimTimeGold lookup(OrderDate == Date,",
 				"     multiple: false,",
 				"     pickup: 'any',",
-				"     broadcast: 'auto')~> GetDueDateKey",
-				"select1, DimTimeGold lookup(ShipDate == Date,",
+				"     broadcast: 'auto')~> GetOrderDateKey",
+				"Select1, DimTimeGold lookup(ShipDate == Date,",
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetShipDateKey",
-				"GetDueDateKey select(mapColumn(",
+				"GetOrderDateKey select(mapColumn(",
 				"          SalesOrderID,",
 				"          RevisionNumber,",
 				"          Status,",
@@ -195,11 +193,11 @@
 				"          Freight,",
 				"          TotalDue,",
 				"          ShipDate,",
-				"          DueDateKey = DateID,",
+				"          OrderDateKey = DateID,",
 				"          CustomerKey",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select1",
+				"     skipDuplicateMapOutputs: true) ~> Select1",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
