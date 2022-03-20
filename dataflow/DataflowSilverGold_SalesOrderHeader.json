@@ -141,7 +141,6 @@
 				"     broadcast: 'auto')~> GetCustomerKey",
 				"Select1 alterRow(upsertIf(true())) ~> AlterRow",
 				"SalesOrderHeaderSilver derive(CustomerID = iifNull(CustomerID, -1,CustomerID),",
-				"          ShipDate = iifNull(ShipDate, toDate('1900-01-01','yyyy-MM-dd'), ShipDate) ,",
 				"          OrderDate = iifNull(OrderDate, toDate('1900-01-01','yyyy-MM-dd'), OrderDate)) ~> ConvertEmptyKeys",
 				"GetCustomerKey, ConvertDate lookup(OrderDate == Date,",
 				"     multiple: false,",
