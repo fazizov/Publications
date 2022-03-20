@@ -161,7 +161,6 @@
 				"          AccountNumber,",
 				"          ModifiedDate = SalesOrderHeaderSilver@ModifiedDate,",
 				"          DateInserted = SalesOrderHeaderSilver@DateInserted,",
-				"          ShipDate,",
 				"          OrderDateKey = DateID,",
 				"          CustomerKey",
 				"     ),",
