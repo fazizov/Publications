@@ -59,6 +59,9 @@
 				},
 				{
 					"name": "Select1"
+				},
+				{
+					"name": "ConvertDate"
 				}
 			],
 			"scriptLines": [
@@ -164,10 +167,9 @@
 				"     skipDuplicateMapOutputs: true) ~> Select2",
 				"Select2 alterRow(upsertIf(true())) ~> AlterRow",
 				"SalesOrderHeaderSilver derive(CustomerID = iifNull(CustomerID, -1,CustomerID),",
-				"          ShipDate = iifNull(ShipDate, toTimestamp('1900-01-01','yyyy-MM-dd'), ShipDate),",
-				"          DueDate = iifNull(DueDate, toTimestamp('1900-01-01','yyyy-MM-dd'), DueDate),",
-				"          OrderDate = iifNull(OrderDate, toTimestamp('1900-01-01','yyyy-MM-dd'), OrderDate)) ~> ConvertEmptyKeys",
-				"GetCustomerKey, DimTimeGold lookup(OrderDate == Date,",
+				"          ShipDate = iifNull(ShipDate, toDate('1900-01-01','yyyy-MM-dd'), ShipDate) ,",
+				"          OrderDate = iifNull(OrderDate, toDate('1900-01-01','yyyy-MM-dd'), OrderDate)) ~> ConvertEmptyKeys",
+				"GetCustomerKey, ConvertDate lookup(OrderDate == Date,",
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetOrderDateKey",
@@ -196,6 +198,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> Select1",
+				"DimTimeGold derive(Date = toTimestamp(toString(Date, 'yyyy-MM-dd'),'yyyy-MM-dd')) ~> ConvertDate",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
