@@ -19,7 +19,7 @@
 						"referenceName": "AzureBlobStorage1",
 						"type": "LinkedServiceReference"
 					},
-					"name": "DimCustomerSource"
+					"name": "DimCustomerGold"
 				}
 			],
 			"sinks": [
@@ -28,7 +28,7 @@
 						"referenceName": "AzureBlobStorage1",
 						"type": "LinkedServiceReference"
 					},
-					"name": "DimCustomerSink"
+					"name": "FactSalesOrderHeader"
 				}
 			],
 			"transformations": [
@@ -103,8 +103,8 @@
 				"     ignoreNoFilesFound: false,",
 				"     format: 'delta',",
 				"     container: 'syn-fs',",
-				"     folderPath: 'delta/gold/DimCustomer') ~> DimCustomerSource",
-				"SalesOrderHeaderSilver, DimCustomerSource lookup(SalesOrderHeaderSilver@CustomerID == DimCustomerSource@CustomerID,",
+				"     folderPath: 'delta/gold/DimCustomer') ~> DimCustomerGold",
+				"SalesOrderHeaderSilver, DimCustomerGold lookup(SalesOrderHeaderSilver@CustomerID == DimCustomerGold@CustomerID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetCusomer",
@@ -149,7 +149,7 @@
 				"     updateable:false,",
 				"     upsertable:true,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> DimCustomerSink"
+				"     skipDuplicateMapOutputs: true) ~> FactSalesOrderHeader"
 			]
 		}
 	}
