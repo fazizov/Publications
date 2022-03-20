@@ -119,7 +119,6 @@
 				"          SalesOrderNumber,",
 				"          PurchaseOrderNumber,",
 				"          AccountNumber,",
-				"          CustomerID = SalesOrderHeaderSilver@CustomerID,",
 				"          ShipToAddressID,",
 				"          BillToAddressID,",
 				"          ShipMethod,",
