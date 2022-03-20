@@ -130,7 +130,6 @@
 				"          TotalDue,",
 				"          Comment,",
 				"          ModifiedDate = SalesOrderHeaderSilver@ModifiedDate,",
-				"          SourceFileName,",
 				"          DateInserted = SalesOrderHeaderSilver@DateInserted,",
 				"          CustomerKey",
 				"     ),",
