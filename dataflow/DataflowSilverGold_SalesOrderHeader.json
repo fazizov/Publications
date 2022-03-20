@@ -19,16 +19,27 @@
 						"referenceName": "AzureBlobStorage1",
 						"type": "LinkedServiceReference"
 					},
-					"name": "DimCustomerGold"
+					"name": "DimCustomerSource"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimCustomerSink"
+				}
+			],
 			"transformations": [
 				{
 					"name": "GetCusomer"
 				},
 				{
-					"name": "select1"
+					"name": "SelectColumns"
+				},
+				{
+					"name": "AlterRow"
 				}
 			],
 			"scriptLines": [
@@ -92,8 +103,8 @@
 				"     ignoreNoFilesFound: false,",
 				"     format: 'delta',",
 				"     container: 'syn-fs',",
-				"     folderPath: 'delta/gold/DimCustomer') ~> DimCustomerGold",
-				"SalesOrderHeaderSilver, DimCustomerGold lookup(SalesOrderHeaderSilver@CustomerID == DimCustomerGold@CustomerID,",
+				"     folderPath: 'delta/gold/DimCustomer') ~> DimCustomerSource",
+				"SalesOrderHeaderSilver, DimCustomerSource lookup(SalesOrderHeaderSilver@CustomerID == DimCustomerSource@CustomerID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetCusomer",
@@ -122,7 +133,23 @@
 				"          CustomerKey",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select1"
+				"     skipDuplicateMapOutputs: true) ~> SelectColumns",
+				"SelectColumns alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     container: 'syn-fs',",
+				"     folderPath: 'delta/gold/FactSalesOrderHeader',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> DimCustomerSink"
 			]
 		}
 	}
