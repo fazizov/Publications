@@ -1,0 +1,193 @@
+{
+	"name": "DataflowSilverGold_SalesOrderHeader_LAD",
+	"properties": {
+		"folder": {
+			"name": "Child flows/Gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SalesOrderHeaderSilver"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimCustomerGold"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimTimeGold"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "FactSalesOrderHeader"
+				}
+			],
+			"transformations": [
+				{
+					"name": "GetCustomerKey"
+				},
+				{
+					"name": "AlterRow"
+				},
+				{
+					"name": "ConvertEmptyKeys"
+				},
+				{
+					"name": "GetOrderDateKey"
+				},
+				{
+					"name": "Select1"
+				},
+				{
+					"name": "ConvertDate"
+				},
+				{
+					"name": "filterCustomer"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          SalesOrderID as integer,",
+				"          RevisionNumber as integer,",
+				"          OrderDate as timestamp,",
+				"          DueDate as timestamp,",
+				"          ShipDate as timestamp,",
+				"          Status as integer,",
+				"          OnlineOrderFlag as boolean,",
+				"          SalesOrderNumber as string,",
+				"          PurchaseOrderNumber as string,",
+				"          AccountNumber as string,",
+				"          CustomerID as integer,",
+				"          ShipToAddressID as integer,",
+				"          BillToAddressID as integer,",
+				"          ShipMethod as string,",
+				"          CreditCardApprovalCode as string,",
+				"          SubTotal as decimal(19,4),",
+				"          TaxAmt as decimal(19,4),",
+				"          Freight as decimal(19,4),",
+				"          TotalDue as decimal(19,4),",
+				"          Comment as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp,",
+				"          SourceFileName as string,",
+				"          DateInserted as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     container: 'syn-fs',",
+				"     folderPath: 'delta/silver/SalesOrderHeader') ~> SalesOrderHeaderSilver",
+				"source(output(",
+				"          CustomerID as integer,",
+				"          CompanyName as string,",
+				"          EmailAddress as string,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          MiddleName as string,",
+				"          ModifiedDate as timestamp,",
+				"          NameStyle as string,",
+				"          Phone as string,",
+				"          SalesPerson as string,",
+				"          Suffix as string,",
+				"          Title as string,",
+				"          DateInserted as timestamp,",
+				"          CompanyName_Prev as string,",
+				"          UserName as string,",
+				"          Domain as string,",
+				"          EffectiveFromDate as timestamp,",
+				"          EffectiveToDate as timestamp,",
+				"          IsActive as integer,",
+				"          RowSignature as long,",
+				"          CustomerKey as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     container: 'syn-fs',",
+				"     folderPath: 'delta/gold/DimCustomer') ~> DimCustomerGold",
+				"source(output(",
+				"          DateID as long,",
+				"          Date as date,",
+				"          Year as integer,",
+				"          Quarter as long,",
+				"          Month as integer,",
+				"          WeekOfYear as integer,",
+				"          DayOfMonth as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     container: 'syn-fs',",
+				"     folderPath: 'delta/gold/DimTime') ~> DimTimeGold",
+				"ConvertEmptyKeys, filterCustomer lookup(ConvertEmptyKeys@CustomerID == DimCustomerGold@CustomerID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> GetCustomerKey",
+				"Select1 alterRow(upsertIf(true())) ~> AlterRow",
+				"SalesOrderHeaderSilver derive(CustomerID = iifNull(CustomerID, -1,CustomerID),",
+				"          OrderDate = iifNull(OrderDate, toDate('1900-01-01','yyyy-MM-dd'), OrderDate)) ~> ConvertEmptyKeys",
+				"GetCustomerKey, ConvertDate lookup(OrderDate == Date,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> GetOrderDateKey",
+				"GetOrderDateKey select(mapColumn(",
+				"          SalesOrderID,",
+				"          RevisionNumber,",
+				"          Status,",
+				"          OnlineOrderFlag,",
+				"          SalesOrderNumber,",
+				"          PurchaseOrderNumber,",
+				"          PurchaseOrderNumber = ShipMethod,",
+				"          SubTotal,",
+				"          TaxAmt,",
+				"          Freight,",
+				"          TotalDue,",
+				"          AccountNumber,",
+				"          ModifiedDate = SalesOrderHeaderSilver@ModifiedDate,",
+				"          DateInserted = SalesOrderHeaderSilver@DateInserted,",
+				"          OrderDateKey = DateID,",
+				"          CustomerKey",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> Select1",
+				"DimTimeGold derive(Date = toTimestamp(toString(Date, 'yyyy-MM-dd'),'yyyy-MM-dd')) ~> ConvertDate",
+				"DimCustomerGold filter(IsActive==1) ~> filterCustomer",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     container: 'syn-fs',",
+				"     folderPath: 'delta/gold/FactSalesOrderHeader',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['SalesOrderID'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> FactSalesOrderHeader"
+			]
+		}
+	}
+}
