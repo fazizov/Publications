@@ -36,6 +36,9 @@
 						"type": "LinkedServiceReference"
 					},
 					"name": "FactSalesOrderHeader"
+				},
+				{
+					"name": "CacheMaxCustomerKey"
 				}
 			],
 			"transformations": [
@@ -186,8 +189,9 @@
 				"          CompanyName = \"Missing dimension\",",
 				"          EmailAddress = \"Missing dimension\",",
 				"          FirstName = \"Missing dimension\",",
-				"          LastName = \"Missing dimension\") ~> derivedColumn1",
-				"filterCustomer aggregate(MaxCustomerKey = max(CustomerKey)) ~> GetMaxCustomerKey",
+				"          LastName = \"Missing dimension\",",
+				"          CustomerKey = CacheMaxCustomerKey#outputs()[1].CustomerKey+1) ~> derivedColumn1",
+				"filterCustomer aggregate(CustomerKey = max(CustomerKey)) ~> GetMaxCustomerKey",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
@@ -203,7 +207,15 @@
 				"     upsertable:true,",
 				"     keys:['SalesOrderID'],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> FactSalesOrderHeader"
+				"     skipDuplicateMapOutputs: true) ~> FactSalesOrderHeader",
+				"GetMaxCustomerKey sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     store: 'cache',",
+				"     format: 'inline',",
+				"     output: false,",
+				"     saveOrder: 1) ~> CacheMaxCustomerKey"
 			]
 		}
 	}
