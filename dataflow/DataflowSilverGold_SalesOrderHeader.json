@@ -56,6 +56,9 @@
 				},
 				{
 					"name": "ConvertDate"
+				},
+				{
+					"name": "filterCustomer"
 				}
 			],
 			"scriptLines": [
@@ -135,7 +138,7 @@
 				"     format: 'delta',",
 				"     container: 'syn-fs',",
 				"     folderPath: 'delta/gold/DimTime') ~> DimTimeGold",
-				"ConvertEmptyKeys, DimCustomerGold lookup(ConvertEmptyKeys@CustomerID == DimCustomerGold@CustomerID,",
+				"ConvertEmptyKeys, filterCustomer lookup(ConvertEmptyKeys@CustomerID == DimCustomerGold@CustomerID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetCustomerKey",
@@ -167,6 +170,7 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> Select1",
 				"DimTimeGold derive(Date = toTimestamp(toString(Date, 'yyyy-MM-dd'),'yyyy-MM-dd')) ~> ConvertDate",
+				"DimCustomerGold filter(IsActive==1) ~> filterCustomer",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
