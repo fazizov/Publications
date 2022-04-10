@@ -59,6 +59,15 @@
 				},
 				{
 					"name": "filterCustomer"
+				},
+				{
+					"name": "ValidateCustomerKey"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "GetMaxCustomerKey"
 				}
 			],
 			"scriptLines": [
@@ -149,7 +158,7 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetOrderDateKey",
-				"GetOrderDateKey select(mapColumn(",
+				"ValidateCustomerKey@ValidateCustomerKey select(mapColumn(",
 				"          SalesOrderID,",
 				"          RevisionNumber,",
 				"          Status,",
@@ -171,6 +180,14 @@
 				"     skipDuplicateMapOutputs: true) ~> Select1",
 				"DimTimeGold derive(Date = toTimestamp(toString(Date, 'yyyy-MM-dd'),'yyyy-MM-dd')) ~> ConvertDate",
 				"DimCustomerGold filter(IsActive==1) ~> filterCustomer",
+				"GetOrderDateKey split(!isNull(CustomerKey),",
+				"     disjoint: false) ~> ValidateCustomerKey@(ValidateCustomerKey, MissingCustomerKey)",
+				"ValidateCustomerKey@MissingCustomerKey derive(CustomerID = ValidateCustomerKey@MissingCustomerKey@CustomerID,",
+				"          CompanyName = \"Missing dimension\",",
+				"          EmailAddress = \"Missing dimension\",",
+				"          FirstName = \"Missing dimension\",",
+				"          LastName = \"Missing dimension\") ~> derivedColumn1",
+				"filterCustomer aggregate(MaxCustomerKey = max(CustomerKey)) ~> GetMaxCustomerKey",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
