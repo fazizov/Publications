@@ -226,7 +226,7 @@
 				"          EmailAddress = \"Missing dimension\",",
 				"          FirstName = \"Missing dimension\",",
 				"          LastName = \"Missing dimension\",",
-				"          CustomerKey = CachedMaxCustomerKey#outputs()[1].MaxCustomerKey+1) ~> derivedColumn1",
+				"          CustomerKey = toInteger(CachedMaxCustomerKey#outputs()[1].MaxCustomerKey)+1) ~> derivedColumn1",
 				"DimCustomerGold2 aggregate(MaxCustomerKey = max(CustomerKey)) ~> GetMaxKey",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
