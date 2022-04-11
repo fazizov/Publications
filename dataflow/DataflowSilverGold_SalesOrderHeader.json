@@ -27,6 +27,13 @@
 						"type": "LinkedServiceReference"
 					},
 					"name": "DimTimeGold"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "source1"
 				}
 			],
 			"sinks": [
@@ -150,6 +157,12 @@
 				"     format: 'delta',",
 				"     container: 'syn-fs',",
 				"     folderPath: 'delta/gold/DimTime') ~> DimTimeGold",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     container: 'syn-fs',",
+				"     folderPath: 'delta/gold/DimCustomer') ~> source1",
 				"ConvertEmptyKeys, filterCustomer lookup(ConvertEmptyKeys@CustomerID == DimCustomerGold@CustomerID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
@@ -191,7 +204,7 @@
 				"          FirstName = \"Missing dimension\",",
 				"          LastName = \"Missing dimension\",",
 				"          CustomerKey = CacheMaxCustomerKey#outputs()[1].CustomerKey+1) ~> derivedColumn1",
-				"filterCustomer aggregate(CustomerKey = max(CustomerKey)) ~> GetMaxCustomerKey",
+				"source1 aggregate(CustomerKey = max(CustomerKey)) ~> GetMaxCustomerKey",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
