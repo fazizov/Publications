@@ -33,7 +33,7 @@
 						"referenceName": "AzureBlobStorage1",
 						"type": "LinkedServiceReference"
 					},
-					"name": "source1"
+					"name": "DimCustomerGold2"
 				}
 			],
 			"sinks": [
@@ -45,7 +45,7 @@
 					"name": "FactSalesOrderHeader"
 				},
 				{
-					"name": "CacheMaxCustomerKey"
+					"name": "CachedMaxCustomerKey"
 				}
 			],
 			"transformations": [
@@ -77,7 +77,7 @@
 					"name": "derivedColumn1"
 				},
 				{
-					"name": "GetMaxCustomerKey"
+					"name": "GetMaxKey"
 				}
 			],
 			"scriptLines": [
@@ -157,12 +157,35 @@
 				"     format: 'delta',",
 				"     container: 'syn-fs',",
 				"     folderPath: 'delta/gold/DimTime') ~> DimTimeGold",
-				"source(allowSchemaDrift: true,",
+				"source(output(",
+				"          CustomerID as integer,",
+				"          CompanyName as string,",
+				"          EmailAddress as string,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          MiddleName as string,",
+				"          ModifiedDate as timestamp,",
+				"          NameStyle as string,",
+				"          Phone as string,",
+				"          SalesPerson as string,",
+				"          Suffix as string,",
+				"          Title as string,",
+				"          DateInserted as timestamp,",
+				"          CompanyName_Prev as string,",
+				"          UserName as string,",
+				"          Domain as string,",
+				"          EffectiveFromDate as timestamp,",
+				"          EffectiveToDate as timestamp,",
+				"          IsActive as integer,",
+				"          RowSignature as long,",
+				"          CustomerKey as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
 				"     format: 'delta',",
 				"     container: 'syn-fs',",
-				"     folderPath: 'delta/gold/DimCustomer') ~> source1",
+				"     folderPath: 'delta/gold/DimCustomer') ~> DimCustomerGold2",
 				"ConvertEmptyKeys, filterCustomer lookup(ConvertEmptyKeys@CustomerID == DimCustomerGold@CustomerID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
@@ -203,8 +226,8 @@
 				"          EmailAddress = \"Missing dimension\",",
 				"          FirstName = \"Missing dimension\",",
 				"          LastName = \"Missing dimension\",",
-				"          CustomerKey = CacheMaxCustomerKey#outputs()[1].CustomerKey+1) ~> derivedColumn1",
-				"source1 aggregate(CustomerKey = max(CustomerKey)) ~> GetMaxCustomerKey",
+				"          CustomerKey = CachedMaxCustomerKey#outputs()[1].MaxCustomerKey+1) ~> derivedColumn1",
+				"DimCustomerGold2 aggregate(MaxCustomerKey = max(CustomerKey)) ~> GetMaxKey",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
@@ -221,14 +244,14 @@
 				"     keys:['SalesOrderID'],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> FactSalesOrderHeader",
-				"GetMaxCustomerKey sink(allowSchemaDrift: true,",
+				"GetMaxKey sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     store: 'cache',",
 				"     format: 'inline',",
 				"     output: false,",
-				"     saveOrder: 1) ~> CacheMaxCustomerKey"
+				"     saveOrder: 1) ~> CachedMaxCustomerKey"
 			]
 		}
 	}
