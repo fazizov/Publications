@@ -1,5 +1,5 @@
 {
-	"name": "DataflowSilverGold_SalesOrderHeader",
+	"name": "DataflowSilverGold_SalesOrderHeader_LateArrDims",
 	"properties": {
 		"folder": {
 			"name": "Child flows/Gold"
@@ -210,8 +210,8 @@
 				"          Freight,",
 				"          TotalDue,",
 				"          AccountNumber,",
-				"          ModifiedDate = SalesOrderHeaderSilver@ModifiedDate,",
-				"          DateInserted = SalesOrderHeaderSilver@DateInserted,",
+				"          ModifiedDate = {SalesOrderHeaderSilver@ModifiedDate},",
+				"          DateInserted = {SalesOrderHeaderSilver@DateInserted},",
 				"          OrderDateKey = DateID,",
 				"          CustomerKey",
 				"     ),",
