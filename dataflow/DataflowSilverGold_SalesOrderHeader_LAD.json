@@ -59,12 +59,6 @@
 				},
 				{
 					"name": "filterCustomer"
-				},
-				{
-					"name": "ValidateCusomerKey"
-				},
-				{
-					"name": "selectCustomer"
 				}
 			],
 			"scriptLines": [
@@ -148,7 +142,7 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetCustomerKey",
-				"ValidateCusomerKey@ValidateCustomerKey alterRow(upsertIf(true())) ~> AlterRow",
+				"Select1 alterRow(upsertIf(true())) ~> AlterRow",
 				"SalesOrderHeaderSilver derive(CustomerID = iifNull(CustomerID, -1,CustomerID),",
 				"          OrderDate = iifNull(OrderDate, toDate('1900-01-01','yyyy-MM-dd'), OrderDate)) ~> ConvertEmptyKeys",
 				"GetCustomerKey, ConvertDate lookup(OrderDate == Date,",
@@ -177,27 +171,6 @@
 				"     skipDuplicateMapOutputs: true) ~> Select1",
 				"DimTimeGold derive(Date = toTimestamp(toString(Date, 'yyyy-MM-dd'),'yyyy-MM-dd')) ~> ConvertDate",
 				"DimCustomerGold filter(IsActive==1) ~> filterCustomer",
-				"Select1 split(!isNull(CustomerKey),",
-				"     disjoint: false) ~> ValidateCusomerKey@(ValidateCustomerKey, MissingCustomerKey)",
-				"ValidateCusomerKey@MissingCustomerKey select(mapColumn(",
-				"          SalesOrderID,",
-				"          RevisionNumber,",
-				"          Status,",
-				"          OnlineOrderFlag,",
-				"          SalesOrderNumber,",
-				"          PurchaseOrderNumber,",
-				"          SubTotal,",
-				"          TaxAmt,",
-				"          Freight,",
-				"          TotalDue,",
-				"          AccountNumber,",
-				"          ModifiedDate,",
-				"          DateInserted,",
-				"          OrderDateKey,",
-				"          CustomerKey",
-				"     ),",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> selectCustomer",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
