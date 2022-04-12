@@ -46,6 +46,13 @@
 				},
 				{
 					"name": "CachedMaxCustomerKey"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimCustomerTarget"
 				}
 			],
 			"transformations": [
@@ -251,7 +258,22 @@
 				"     store: 'cache',",
 				"     format: 'inline',",
 				"     output: false,",
-				"     saveOrder: 1) ~> CachedMaxCustomerKey"
+				"     saveOrder: 1) ~> CachedMaxCustomerKey",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     container: 'syn-fs',",
+				"     folderPath: 'delta/gold/DimCustomer',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> DimCustomerTarget"
 			]
 		}
 	}
