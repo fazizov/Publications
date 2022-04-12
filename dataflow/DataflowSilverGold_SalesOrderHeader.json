@@ -1,5 +1,5 @@
 {
-	"name": "DataflowSilverGold_SalesOrderHeader",
+	"name": "DataflowSilverGold_SalesOrderHeader_LAD",
 	"properties": {
 		"folder": {
 			"name": "Child flows/Gold"
@@ -27,13 +27,6 @@
 						"type": "LinkedServiceReference"
 					},
 					"name": "DimTimeGold"
-				},
-				{
-					"linkedService": {
-						"referenceName": "AzureBlobStorage1",
-						"type": "LinkedServiceReference"
-					},
-					"name": "DimCustomerGold2"
 				}
 			],
 			"sinks": [
@@ -43,9 +36,6 @@
 						"type": "LinkedServiceReference"
 					},
 					"name": "FactSalesOrderHeader"
-				},
-				{
-					"name": "CachedMaxCustomerKey"
 				}
 			],
 			"transformations": [
@@ -69,15 +59,6 @@
 				},
 				{
 					"name": "filterCustomer"
-				},
-				{
-					"name": "ValidateCustomerKey"
-				},
-				{
-					"name": "derivedColumn1"
-				},
-				{
-					"name": "GetMaxKey"
 				}
 			],
 			"scriptLines": [
@@ -157,35 +138,6 @@
 				"     format: 'delta',",
 				"     container: 'syn-fs',",
 				"     folderPath: 'delta/gold/DimTime') ~> DimTimeGold",
-				"source(output(",
-				"          CustomerID as integer,",
-				"          CompanyName as string,",
-				"          EmailAddress as string,",
-				"          FirstName as string,",
-				"          LastName as string,",
-				"          MiddleName as string,",
-				"          ModifiedDate as timestamp,",
-				"          NameStyle as string,",
-				"          Phone as string,",
-				"          SalesPerson as string,",
-				"          Suffix as string,",
-				"          Title as string,",
-				"          DateInserted as timestamp,",
-				"          CompanyName_Prev as string,",
-				"          UserName as string,",
-				"          Domain as string,",
-				"          EffectiveFromDate as timestamp,",
-				"          EffectiveToDate as timestamp,",
-				"          IsActive as integer,",
-				"          RowSignature as long,",
-				"          CustomerKey as long",
-				"     ),",
-				"     allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false,",
-				"     format: 'delta',",
-				"     container: 'syn-fs',",
-				"     folderPath: 'delta/gold/DimCustomer') ~> DimCustomerGold2",
 				"ConvertEmptyKeys, filterCustomer lookup(ConvertEmptyKeys@CustomerID == DimCustomerGold@CustomerID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
@@ -197,7 +149,7 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetOrderDateKey",
-				"ValidateCustomerKey@ValidateCustomerKey select(mapColumn(",
+				"GetOrderDateKey select(mapColumn(",
 				"          SalesOrderID,",
 				"          RevisionNumber,",
 				"          Status,",
@@ -219,15 +171,6 @@
 				"     skipDuplicateMapOutputs: true) ~> Select1",
 				"DimTimeGold derive(Date = toTimestamp(toString(Date, 'yyyy-MM-dd'),'yyyy-MM-dd')) ~> ConvertDate",
 				"DimCustomerGold filter(IsActive==1) ~> filterCustomer",
-				"GetOrderDateKey split(!isNull(CustomerKey),",
-				"     disjoint: false) ~> ValidateCustomerKey@(ValidateCustomerKey, MissingCustomerKey)",
-				"ValidateCustomerKey@MissingCustomerKey derive(CustomerKey = toInteger(CachedMaxCustomerKey#outputs()[1].MaxCustomerKey)+1,",
-				"          CustomerID = ValidateCustomerKey@MissingCustomerKey@CustomerID,",
-				"          CompanyName = \"Missing dimension\",",
-				"          EmailAddress = \"Missing dimension\",",
-				"          FirstName = \"Missing dimension\",",
-				"          LastName = \"Missing dimension\") ~> derivedColumn1",
-				"DimCustomerGold2 aggregate(MaxCustomerKey = max(CustomerKey)) ~> GetMaxKey",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
@@ -243,15 +186,7 @@
 				"     upsertable:true,",
 				"     keys:['SalesOrderID'],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> FactSalesOrderHeader",
-				"GetMaxKey sink(allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     store: 'cache',",
-				"     format: 'inline',",
-				"     output: false,",
-				"     saveOrder: 1) ~> CachedMaxCustomerKey"
+				"     skipDuplicateMapOutputs: true) ~> FactSalesOrderHeader"
 			]
 		}
 	}
