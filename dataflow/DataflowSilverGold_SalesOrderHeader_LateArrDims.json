@@ -85,6 +85,9 @@
 				},
 				{
 					"name": "GetMaxKey"
+				},
+				{
+					"name": "alterRow1"
 				}
 			],
 			"scriptLines": [
@@ -235,6 +238,7 @@
 				"          FirstName = \"Missing dimension\",",
 				"          LastName = \"Missing dimension\") ~> derivedColumn1",
 				"DimCustomerGold2 aggregate(MaxCustomerKey = max(CustomerKey)) ~> GetMaxKey",
+				"derivedColumn1 alterRow(upsertIf(true())) ~> alterRow1",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
@@ -259,7 +263,7 @@
 				"     format: 'inline',",
 				"     output: false,",
 				"     saveOrder: 1) ~> CachedMaxCustomerKey",
-				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"alterRow1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
 				"     container: 'syn-fs',",
@@ -271,7 +275,8 @@
 				"     deletable:false,",
 				"     insertable:true,",
 				"     updateable:false,",
-				"     upsertable:false,",
+				"     upsertable:true,",
+				"     keys:['CustomerKey'],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> DimCustomerTarget"
 			]
