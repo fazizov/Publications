@@ -109,12 +109,38 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "BronzeSilverSalesOrders",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
 						"referenceName": "SilverGold",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "BronzeSilverSalesOrders",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "LandingBronze",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "BronzeSilverSalesOrders",
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true
