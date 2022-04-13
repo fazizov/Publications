@@ -240,7 +240,7 @@
 				"          LastName = \"Missing customer attribute\",",
 				"          EmailAddress = \"Missing customer attribute\",",
 				"          EffectiveFromDate = currentDate('yyyy-MM-dd'),",
-				"          EffectiveToDate = toDate('2099-12-31','yyyy-MM-dd'),",
+				"          EffectiveToDate = toDate('9099-01-01','yyyy-MM-dd'),",
 				"          IsActive = 1,",
 				"          RowSignature = crc32(256,CompanyName,ValidateCustomerKey@MissingCustomerKey@CustomerID,EmailAddress,FirstName,LastName,MiddleName)) ~> derivedColumn1",
 				"DimCustomerGold2 aggregate(MaxCustomerKey = max(CustomerKey)) ~> GetMaxKey",
