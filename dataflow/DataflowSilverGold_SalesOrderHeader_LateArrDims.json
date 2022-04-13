@@ -88,6 +88,9 @@
 				},
 				{
 					"name": "alterRow1"
+				},
+				{
+					"name": "selectCustomer"
 				}
 			],
 			"scriptLines": [
@@ -241,7 +244,16 @@
 				"          EffectiveToDate = toDate('2099-12-31','yyyy-MM-dd'),",
 				"          IsActive = 1) ~> derivedColumn1",
 				"DimCustomerGold2 aggregate(MaxCustomerKey = max(CustomerKey)) ~> GetMaxKey",
-				"derivedColumn1 alterRow(upsertIf(true())) ~> alterRow1",
+				"selectCustomer alterRow(upsertIf(true())) ~> alterRow1",
+				"derivedColumn1 select(mapColumn(",
+				"          CustomerKey,",
+				"          CustomerID,",
+				"          EffectiveFromDate,",
+				"          EffectiveToDate,",
+				"          IsActive",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectCustomer",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
