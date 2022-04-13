@@ -81,7 +81,7 @@
 					"name": "ValidateCustomerKey"
 				},
 				{
-					"name": "derivedColumn1"
+					"name": "GenerateUnknownCusomer"
 				},
 				{
 					"name": "GetMaxKey"
@@ -91,6 +91,9 @@
 				},
 				{
 					"name": "selectCustomer"
+				},
+				{
+					"name": "UnionWithUnknown"
 				}
 			],
 			"scriptLines": [
@@ -210,7 +213,7 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetOrderDateKey",
-				"ValidateCustomerKey@ValidateCustomerKey select(mapColumn(",
+				"UnionWithUnknown select(mapColumn(",
 				"          SalesOrderID,",
 				"          RevisionNumber,",
 				"          Status,",
@@ -242,10 +245,10 @@
 				"          EffectiveFromDate = currentDate('yyyy-MM-dd'),",
 				"          EffectiveToDate = toDate('9099-01-01','yyyy-MM-dd'),",
 				"          IsActive = 1,",
-				"          RowSignature = crc32(256,CompanyName,ValidateCustomerKey@MissingCustomerKey@CustomerID,EmailAddress,FirstName,LastName,MiddleName)) ~> derivedColumn1",
+				"          RowSignature = crc32(256,CompanyName,ValidateCustomerKey@MissingCustomerKey@CustomerID,EmailAddress,FirstName,LastName,MiddleName)) ~> GenerateUnknownCusomer",
 				"DimCustomerGold2 aggregate(MaxCustomerKey = max(CustomerKey)) ~> GetMaxKey",
 				"selectCustomer alterRow(upsertIf(true())) ~> alterRowCustomer",
-				"derivedColumn1 select(mapColumn(",
+				"GenerateUnknownCusomer select(mapColumn(",
 				"          CustomerKey,",
 				"          CustomerID,",
 				"          FirstName,",
@@ -258,6 +261,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> selectCustomer",
+				"ValidateCustomerKey@ValidateCustomerKey, GenerateUnknownCusomer union(byName: true)~> UnionWithUnknown",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
