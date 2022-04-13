@@ -87,7 +87,7 @@
 					"name": "GetMaxKey"
 				},
 				{
-					"name": "alterRow1"
+					"name": "alterRowCustomer"
 				},
 				{
 					"name": "selectCustomer"
@@ -236,15 +236,15 @@
 				"     disjoint: false) ~> ValidateCustomerKey@(ValidateCustomerKey, MissingCustomerKey)",
 				"ValidateCustomerKey@MissingCustomerKey derive(CustomerKey = toInteger(CachedMaxCustomerKey#outputs()[1].MaxCustomerKey)+1,",
 				"          CustomerID = ValidateCustomerKey@MissingCustomerKey@CustomerID,",
-				"          FirstName = \"Missing dimension attribute\",",
-				"          LastName = \"Missing dimension attribute\",",
-				"          EmailAddress = \"Missing dimension attribute\",",
+				"          FirstName = \"Missing customer attribute\",",
+				"          LastName = \"Missing customer attribute\",",
+				"          EmailAddress = \"Missing customer attribute\",",
 				"          EffectiveFromDate = currentDate('yyyy-MM-dd'),",
 				"          EffectiveToDate = toDate('2099-12-31','yyyy-MM-dd'),",
 				"          IsActive = 1,",
 				"          RowSignature = crc32(256,CompanyName,ValidateCustomerKey@MissingCustomerKey@CustomerID,EmailAddress,FirstName,LastName,MiddleName)) ~> derivedColumn1",
 				"DimCustomerGold2 aggregate(MaxCustomerKey = max(CustomerKey)) ~> GetMaxKey",
-				"selectCustomer alterRow(upsertIf(true())) ~> alterRow1",
+				"selectCustomer alterRow(upsertIf(true())) ~> alterRowCustomer",
 				"derivedColumn1 select(mapColumn(",
 				"          CustomerKey,",
 				"          CustomerID,",
@@ -282,7 +282,7 @@
 				"     format: 'inline',",
 				"     output: false,",
 				"     saveOrder: 1) ~> CachedMaxCustomerKey",
-				"alterRow1 sink(allowSchemaDrift: true,",
+				"alterRowCustomer sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
 				"     container: 'syn-fs',",
