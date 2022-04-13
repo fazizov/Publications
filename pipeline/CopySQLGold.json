@@ -75,7 +75,7 @@
 				}
 			},
 			{
-				"name": "BronzeSilver",
+				"name": "BronzeSilverDimensions",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
@@ -88,7 +88,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
-						"referenceName": "BronzeToSilver",
+						"referenceName": "BronzeToSilverDimensions",
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true
@@ -99,7 +99,7 @@
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "BronzeSilver",
+						"activity": "BronzeSilverDimensions",
 						"dependencyConditions": [
 							"Succeeded"
 						]
