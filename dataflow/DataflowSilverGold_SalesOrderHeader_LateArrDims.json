@@ -94,6 +94,9 @@
 				},
 				{
 					"name": "selectSalesOrderHeader"
+				},
+				{
+					"name": "union1"
 				}
 			],
 			"scriptLines": [
@@ -206,7 +209,7 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetCustomerKey",
-				"Select1 alterRow(upsertIf(true())) ~> AlterRow",
+				"union1 alterRow(upsertIf(true())) ~> AlterRow",
 				"SalesOrderHeaderSilver derive(CustomerID = iifNull(CustomerID, -1,CustomerID),",
 				"          OrderDate = iifNull(OrderDate, toDate('1900-01-01','yyyy-MM-dd'), OrderDate)) ~> ConvertEmptyKeys",
 				"GetCustomerKey, ConvertDate lookup(OrderDate == Date,",
@@ -225,11 +228,11 @@
 				"          TaxAmt,",
 				"          TotalDue,",
 				"          AccountNumber,",
-				"          ModifiedDate = {SalesOrderHeaderSilver@ModifiedDate},",
-				"          DateInserted = {SalesOrderHeaderSilver@DateInserted},",
+				"          Freight,",
+				"          ModifiedDate = ValidateCustomerKey@ValidateCustomerKey@ModifiedDate,",
+				"          DateInserted = ValidateCustomerKey@ValidateCustomerKey@DateInserted,",
 				"          OrderDateKey = DateID,",
-				"          CustomerKey,",
-				"          Freight",
+				"          CustomerKey",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> Select1",
@@ -281,6 +284,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> selectSalesOrderHeader",
+				"Select1, selectSalesOrderHeader union(byName: true)~> union1",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
