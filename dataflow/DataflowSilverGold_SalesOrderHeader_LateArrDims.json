@@ -282,7 +282,7 @@
 				"          ModifiedDate = ValidateCustomerKey@ModifiedDate,",
 				"          DateInserted = ValidateCustomerKey@DateInserted,",
 				"          CustomerKey,",
-				"          OrderDateKey = DateID",
+				"          OrderDateKey",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> selectSalesOrderHeader",
