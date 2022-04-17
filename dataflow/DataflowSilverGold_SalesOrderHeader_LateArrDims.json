@@ -250,7 +250,7 @@
 				"          EffectiveFromDate = currentDate('yyyy-MM-dd'),",
 				"          EffectiveToDate = toDate('9099-01-01','yyyy-MM-dd'),",
 				"          IsActive = 1,",
-				"          RowSignature = crc32(256,CompanyName,ValidateCustomerKey@MissingCustomerKey@CustomerID,EmailAddress,FirstName,LastName,MiddleName)) ~> GenerateUnknownCusomer",
+				"          RowSignature = crc32(256,CustomerID,\"Missing attribute\",\"Missing attribute\",\"Missing attribute\")) ~> GenerateUnknownCusomer",
 				"DimCustomerGold2 aggregate(MaxCustomerKey = max(CustomerKey)) ~> GetMaxKey",
 				"selectCustomer alterRow(upsertIf(true())) ~> alterRowCustomer",
 				"GenerateUnknownCusomer select(mapColumn(",
