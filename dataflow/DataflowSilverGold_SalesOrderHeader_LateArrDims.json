@@ -243,7 +243,7 @@
 				"DimTimeGold derive(Date = toTimestamp(toString(Date, 'yyyy-MM-dd'),'yyyy-MM-dd')) ~> ConvertDate",
 				"DimCustomerGold filter(IsActive==1) ~> filterCustomer",
 				"surrogateKey1 derive(CustomerKey = toInteger(CachedMaxCustomerKey#outputs()[1].MaxCustomerKey)+SurrogateKey,",
-				"          CustomerID = CustomerKey,",
+				"          CustomerID = CustomerID,",
 				"          FirstName = \"Missing attribute\",",
 				"          LastName = \"Missing attribute\",",
 				"          EmailAddress = \"Missing attribute\",",
