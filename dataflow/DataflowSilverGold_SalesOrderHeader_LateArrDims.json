@@ -93,7 +93,7 @@
 					"name": "selectSalesOrderHeader"
 				},
 				{
-					"name": "union1"
+					"name": "UnionFactRows"
 				},
 				{
 					"name": "surrogateKey1"
@@ -212,7 +212,7 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetCustomerKey",
-				"union1 alterRow(upsertIf(true())) ~> AlterRow",
+				"UnionFactRows alterRow(upsertIf(true())) ~> AlterRow",
 				"SalesOrderHeaderSilver derive(CustomerID = iifNull(CustomerID, -1,CustomerID),",
 				"          OrderDate = iifNull(OrderDate, toDate('1900-01-01','yyyy-MM-dd'), OrderDate)) ~> ConvertEmptyKeys",
 				"GetCustomerKey, ConvertDate lookup(OrderDate == Date,",
@@ -226,7 +226,7 @@
 				"          OnlineOrderFlag,",
 				"          SalesOrderNumber,",
 				"          PurchaseOrderNumber,",
-				"          PurchaseOrderNumber = ShipMethod,",
+				"          ShipMethod,",
 				"          SubTotal,",
 				"          TaxAmt,",
 				"          TotalDue,",
@@ -286,7 +286,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> selectSalesOrderHeader",
-				"split1@DimensionMatch, selectSalesOrderHeader union(byName: true)~> union1",
+				"split1@DimensionMatch, selectSalesOrderHeader union(byName: true)~> UnionFactRows",
 				"split1@DimensionNoMatch keyGenerate(output(SurrogateKey as long),",
 				"     startAt: 1L,",
 				"     stepValue: 1L) ~> surrogateKey1",
