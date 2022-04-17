@@ -78,9 +78,6 @@
 					"name": "filterCustomer"
 				},
 				{
-					"name": "ValidateCustomerKey"
-				},
-				{
 					"name": "GenerateUnknownCusomer"
 				},
 				{
@@ -100,6 +97,9 @@
 				},
 				{
 					"name": "surrogateKey1"
+				},
+				{
+					"name": "split1"
 				}
 			],
 			"scriptLines": [
@@ -219,7 +219,7 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetOrderDateKey",
-				"ValidateCustomerKey@ValidateCustomerKey select(mapColumn(",
+				"GetOrderDateKey select(mapColumn(",
 				"          SalesOrderID,",
 				"          RevisionNumber,",
 				"          Status,",
@@ -232,19 +232,18 @@
 				"          TotalDue,",
 				"          AccountNumber,",
 				"          Freight,",
-				"          ModifiedDate = ValidateCustomerKey@ValidateCustomerKey@ModifiedDate,",
-				"          DateInserted = ValidateCustomerKey@ValidateCustomerKey@DateInserted,",
+				"          ModifiedDate = SalesOrderHeaderSilver@ModifiedDate,",
+				"          DateInserted = SalesOrderHeaderSilver@DateInserted,",
 				"          OrderDateKey = DateID,",
-				"          CustomerKey",
+				"          CustomerKey,",
+				"          CustomerID = ConvertEmptyKeys@CustomerID",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> Select1",
 				"DimTimeGold derive(Date = toTimestamp(toString(Date, 'yyyy-MM-dd'),'yyyy-MM-dd')) ~> ConvertDate",
 				"DimCustomerGold filter(IsActive==1) ~> filterCustomer",
-				"GetOrderDateKey split(!isNull(CustomerKey),",
-				"     disjoint: false) ~> ValidateCustomerKey@(ValidateCustomerKey, MissingCustomerKey)",
-				"surrogateKey1 derive(CustomerKey = toInteger(CachedMaxCustomerKey#outputs()[1].MaxCustomerKey)+1,",
-				"          CustomerID = ValidateCustomerKey@MissingCustomerKey@CustomerID,",
+				"surrogateKey1 derive(CustomerKey = toInteger(CachedMaxCustomerKey#outputs()[1].MaxCustomerKey)+SurrogateKey,",
+				"          CustomerID = CustomerKey,",
 				"          FirstName = \"Missing attribute\",",
 				"          LastName = \"Missing attribute\",",
 				"          EmailAddress = \"Missing attribute\",",
@@ -280,17 +279,19 @@
 				"          TotalDue,",
 				"          AccountNumber,",
 				"          Freight,",
-				"          ModifiedDate = ValidateCustomerKey@MissingCustomerKey@ModifiedDate,",
-				"          DateInserted = ValidateCustomerKey@MissingCustomerKey@DateInserted,",
+				"          ModifiedDate = ValidateCustomerKey@ModifiedDate,",
+				"          DateInserted = ValidateCustomerKey@DateInserted,",
 				"          CustomerKey,",
 				"          OrderDateKey = DateID",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> selectSalesOrderHeader",
-				"Select1, selectSalesOrderHeader union(byName: true)~> union1",
-				"ValidateCustomerKey@MissingCustomerKey keyGenerate(output(Key as long),",
+				"split1@DimensionMatch, selectSalesOrderHeader union(byName: true)~> union1",
+				"split1@DimensionNoMatch keyGenerate(output(SurrogateKey as long),",
 				"     startAt: 1L,",
 				"     stepValue: 1L) ~> surrogateKey1",
+				"Select1 split(!isNull(CustomerKey),",
+				"     disjoint: false) ~> split1@(DimensionMatch, DimensionNoMatch)",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
