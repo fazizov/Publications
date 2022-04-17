@@ -100,6 +100,9 @@
 				},
 				{
 					"name": "split1"
+				},
+				{
+					"name": "SelectFactSalesOrderHeaderFields"
 				}
 			],
 			"scriptLines": [
@@ -212,7 +215,7 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> GetCustomerKey",
-				"UnionFactRows alterRow(upsertIf(true())) ~> AlterRow",
+				"SelectFactSalesOrderHeaderFields alterRow(upsertIf(true())) ~> AlterRow",
 				"SalesOrderHeaderSilver derive(CustomerID = iifNull(CustomerID, -1,CustomerID),",
 				"          OrderDate = iifNull(OrderDate, toDate('1900-01-01','yyyy-MM-dd'), OrderDate)) ~> ConvertEmptyKeys",
 				"GetCustomerKey, ConvertDate lookup(OrderDate == Date,",
@@ -292,6 +295,26 @@
 				"     stepValue: 1L) ~> surrogateKey1",
 				"Select1 split(!isNull(CustomerKey),",
 				"     disjoint: false) ~> split1@(DimensionMatch, DimensionNoMatch)",
+				"UnionFactRows select(mapColumn(",
+				"          SalesOrderID,",
+				"          RevisionNumber,",
+				"          Status,",
+				"          OnlineOrderFlag,",
+				"          SalesOrderNumber,",
+				"          PurchaseOrderNumber,",
+				"          ShipMethod,",
+				"          SubTotal,",
+				"          TaxAmt,",
+				"          TotalDue,",
+				"          AccountNumber,",
+				"          Freight,",
+				"          ModifiedDate,",
+				"          DateInserted,",
+				"          OrderDateKey,",
+				"          CustomerKey",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectFactSalesOrderHeaderFields",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
