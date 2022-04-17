@@ -100,9 +100,6 @@
 				},
 				{
 					"name": "surrogateKey1"
-				},
-				{
-					"name": "RemoveDuplicateFields"
 				}
 			],
 			"scriptLines": [
@@ -244,7 +241,7 @@
 				"     skipDuplicateMapOutputs: true) ~> Select1",
 				"DimTimeGold derive(Date = toTimestamp(toString(Date, 'yyyy-MM-dd'),'yyyy-MM-dd')) ~> ConvertDate",
 				"DimCustomerGold filter(IsActive==1) ~> filterCustomer",
-				"RemoveDuplicateFields split(!isNull(CustomerKey),",
+				"GetOrderDateKey split(!isNull(CustomerKey),",
 				"     disjoint: false) ~> ValidateCustomerKey@(ValidateCustomerKey, MissingCustomerKey)",
 				"surrogateKey1 derive(CustomerKey = toInteger(CachedMaxCustomerKey#outputs()[1].MaxCustomerKey)+1,",
 				"          CustomerID = ValidateCustomerKey@MissingCustomerKey@CustomerID,",
@@ -294,14 +291,6 @@
 				"ValidateCustomerKey@MissingCustomerKey keyGenerate(output(Key as long),",
 				"     startAt: 1L,",
 				"     stepValue: 1L) ~> surrogateKey1",
-				"GetOrderDateKey select(mapColumn(",
-				"          each(match(stream!='DimCustomerGold'),",
-				"               /* Input name */ $$ = $$),",
-				"          CustomerKey,",
-				"          CustomerID = ConvertEmptyKeys@CustomerID",
-				"     ),",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> RemoveDuplicateFields",
 				"AlterRow sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
