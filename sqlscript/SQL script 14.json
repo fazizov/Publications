@@ -2,7 +2,7 @@
 	"name": "SQL script 14",
 	"properties": {
 		"content": {
-			"query": "CREATE EXTERNAL DATA SOURCE [STG_EDS] WITH\n(\n\tLOCATION = 'https://synstg.blob.core.windows.net/syn-fs'\n)\n",
+			"query": "select * from [dbo].[DimCustomer]\n",
 			"metadata": {
 				"language": "sql"
 			},
