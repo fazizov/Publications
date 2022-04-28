@@ -2,7 +2,7 @@
 	"name": "SQL script 15",
 	"properties": {
 		"content": {
-			"query": "CREATE MASTER KEY ENCRYPTION BY PASSWORD ='MyPassword20#0'",
+			"query": "-- CREATE MASTER KEY ENCRYPTION BY PASSWORD ='MyPassword20#0';\n\n-- CREATE DATABASE SCOPED CREDENTIAL sqlondemand\n-- WITH IDENTITY='SHARED ACCESS SIGNATURE',  \n-- SECRET = '?sv=2020-08-04&ss=b&srt=c&sp=rwdlacx&se=2023-04-29T07:28:37Z&st=2022-04-28T23:28:37Z&spr=https&sig=8vr9AEPf%2BMu1VCCavU7VyOC8y0crkxhNUX%2FQBcBZ2pw%3D'\n-- GO\n\nCREATE EXTERNAL DATA SOURCE SqlOnDemandDemo WITH (\n--     LOCATION = 'https://sqlondemandstorage.blob.core.windows.net',\n--     CREDENTIAL = sqlondemand\n-- );'\n-- GO\n-- CREATE EXTERNAL DATA SOURCE SqlOnDemandDemo WITH (\n--     LOCATION = 'https://sqlondemandstorage.blob.core.windows.net',\n--     CREDENTIAL = sqlondemand\n-- );",
 			"metadata": {
 				"language": "sql"
 			},
