@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 13",
+	"properties": {
+		"content": {
+			"query": "CREATE EXTERNAL TABLE [dbo].[DimCustomer]\n(\n\t [Id] INT\n)\nWITH\n(\n\tLOCATION = '/DimCustomer',\n\tDATA_SOURCE = STG_EDS,\n\tFILE_FORMAT = DeltaLakeFormat\n)\n\n\n-- ",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "DWH",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
