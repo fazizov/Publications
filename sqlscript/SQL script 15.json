@@ -2,7 +2,7 @@
 	"name": "SQL script 15",
 	"properties": {
 		"content": {
-			"query": "CREATE MASTER KEY ENCRYPTION BY PASSWORD ='MyPassword'",
+			"query": "CREATE MASTER KEY ENCRYPTION BY PASSWORD ='MyPassword20#0'",
 			"metadata": {
 				"language": "sql"
 			},
