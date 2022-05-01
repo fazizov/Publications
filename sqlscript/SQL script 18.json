@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 18",
+	"properties": {
+		"content": {
+			"query": "USE EDW;\n-- CREATE EXTERNAL DATA SOURCE [STG_EDS3] WITH\n-- (\n-- \tLOCATION = 'https://synstg.blob.core.windows.net/syn-fs'--,CREDENTIAL= [sqlondemand]\n-- );\n\nCREATE EXTERNAL TABLE [dbo].[DimCustomer] WITH (\n        LOCATION = 'test/',\n        DATA_SOURCE = [STG_EDS3],\n        FILE_FORMAT = [DeltaLakeFormat]\n) AS\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'DimCustomer',\n        DATA_SOURCE = 'STG_EDS2',\n        FORMAT = 'DELTA'\n    ) AS [result]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "EDW",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

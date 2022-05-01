@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 17",
+	"properties": {
+		"content": {
+			"query": "-- This is auto-generated code\n-- SELECT\n--     TOP 100 *\n-- FROM\n--     OPENROWSET(\n--         BULK 'https://synstg.blob.core.windows.net/syn-fs/delta/gold/DimCustomer/',\n--         FORMAT = 'DELTA'\n--     ) AS [result]\n\n-- CREATE DATABASE EDW;\nUSE EDW;\n-- CREATE EXTERNAL DATA SOURCE [STG_EDS2] WITH\n-- (\n-- \tLOCATION = 'https://synstg.blob.core.windows.net/syn-fs/delta/gold/'\n-- );\n\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'DimCustomer',\n        DATA_SOURCE = 'STG_EDS2',\n        FORMAT = 'DELTA'\n    ) AS [result]\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "EDW",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

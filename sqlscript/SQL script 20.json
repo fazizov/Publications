@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 20",
+	"properties": {
+		"content": {
+			"query": "USE EDW;\nGO\n-- CREATE VIEW [dbo].[vw_dimWatermarks]\n-- \tAS \n-- \tSELECT\n--     TOP 100 *\n-- FROM\n--     OPENROWSET(\n--         BULK 'DimCustomer',\n--         DATA_SOURCE = 'STG_EDS2',\n--         FORMAT = 'DELTA'\n--     ) AS [result]\n-- ;\n-- go\nselect * from  [dbo].[vw_dimWatermarks];",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "EDW",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
