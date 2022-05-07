@@ -1,0 +1,71 @@
+{
+	"name": "AzureSqlTable2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase2",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Movement_Key",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "Date Key",
+				"type": "date"
+			},
+			{
+				"name": "Stock Item Key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Customer Key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Supplier Key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Transaction Type Key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "WWI Stock Item Transaction ID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "WWI Invoice ID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "WWI Purchase Order ID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Quantity",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Lineage Key",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "Fact",
+			"table": "Movement_Dest"
+		}
+	}
+}
