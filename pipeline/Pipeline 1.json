@@ -28,6 +28,7 @@
 						"disableMetricsCollection": false
 					},
 					"enableStaging": false,
+					"dataIntegrationUnits": 8,
 					"translator": {
 						"type": "TabularTranslator",
 						"typeConversion": true,
