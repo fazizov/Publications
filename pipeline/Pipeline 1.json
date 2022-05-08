@@ -18,7 +18,12 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"queryTimeout": "02:00:00",
-						"partitionOption": "None"
+						"partitionOption": "DynamicRange",
+						"partitionSettings": {
+							"partitionColumnName": "Movement Key",
+							"partitionUpperBound": "",
+							"partitionLowerBound": ""
+						}
 					},
 					"sink": {
 						"type": "AzureSqlSink",
