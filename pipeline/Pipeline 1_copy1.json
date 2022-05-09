@@ -17,7 +17,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderQuery": "SELECT \n      [Date Key]\n      ,[Stock Item Key]\n      ,[Customer Key]\n      ,[Supplier Key]\n      ,[Transaction Type Key]\n      ,[WWI Stock Item Transaction ID]\n      ,[WWI Invoice ID]\n      ,[WWI Purchase Order ID]\n      ,[Quantity]\n      ,[Lineage Key]\n  FROM [Fact].[Movement_dest] WHERE ?AdfDynamicRangePartitionCondition;",
+						"sqlReaderQuery": "SELECT \n      [Date Key]\n      ,[Stock Item Key]\n      ,[Customer Key]\n      ,[Supplier Key]\n      ,[Transaction Type Key]\n      ,[WWI Stock Item Transaction ID]\n      ,[WWI Invoice ID]\n      ,[WWI Purchase Order ID]\n      ,[Quantity]\n      ,[Lineage Key]\n  FROM [Fact].[Movement_dest] WHERE \n ?AdfDynamicRangePartitionCondition",
 						"queryTimeout": "02:00:00",
 						"partitionOption": "DynamicRange",
 						"partitionSettings": {
