@@ -20,7 +20,7 @@
 						"queryTimeout": "02:00:00",
 						"partitionOption": "DynamicRange",
 						"partitionSettings": {
-							"partitionColumnName": "Movement Key",
+							"partitionColumnName": "Date Key",
 							"partitionUpperBound": "",
 							"partitionLowerBound": ""
 						}
