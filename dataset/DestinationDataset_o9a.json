@@ -1,0 +1,19 @@
+{
+	"name": "DestinationDataset_o9a",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "DestinationContainer",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": "03.02",
+				"container": "dwtemp"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

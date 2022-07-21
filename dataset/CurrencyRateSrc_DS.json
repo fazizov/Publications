@@ -1,0 +1,27 @@
+{
+	"name": "CurrencyRateSrc_DS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "CurrencyRate",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 2
+			},
+			{
+				"name": "CurrencyName",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"tableName": "[dbo].[CurrencyRates]"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

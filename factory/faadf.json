@@ -1,0 +1,9 @@
+{
+	"name": "faadf",
+	"location": "EastUS",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "90e9e490-79a0-4052-bd1c-2b60c6b9a5be",
+		"tenantId": "9ca75128-a244-4596-877b-f24828e476e2"
+	}
+}

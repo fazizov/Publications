@@ -1,0 +1,169 @@
+{
+	"name": "CopyPipeline_Adventureworks_blob",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach_xg3",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.cw_items",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy_xg3",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [
+								{
+									"name": "Source",
+									"value": "SalesLT.@{item().source.table}"
+								},
+								{
+									"name": "Destination",
+									"value": "mda//@{item().destination.fileName}"
+								}
+							],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SourceDataset_xg3",
+									"type": "DatasetReference",
+									"parameters": {
+										"cw_table": "@item().source.table"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DestinationDataset_xg3",
+									"type": "DatasetReference",
+									"parameters": {
+										"cw_fileName": "@item().destination.fileName"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"cw_items": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"source": {
+							"table": "Address"
+						},
+						"destination": {
+							"fileName": "SalesLTAddress.csv"
+						}
+					},
+					{
+						"source": {
+							"table": "Customer"
+						},
+						"destination": {
+							"fileName": "SalesLTCustomer.csv"
+						}
+					},
+					{
+						"source": {
+							"table": "CustomerAddress"
+						},
+						"destination": {
+							"fileName": "SalesLTCustomerAddress.csv"
+						}
+					},
+					{
+						"source": {
+							"table": "Product"
+						},
+						"destination": {
+							"fileName": "SalesLTProduct.csv"
+						}
+					},
+					{
+						"source": {
+							"table": "ProductCategory"
+						},
+						"destination": {
+							"fileName": "SalesLTProductCategory.csv"
+						}
+					},
+					{
+						"source": {
+							"table": "ProductDescription"
+						},
+						"destination": {
+							"fileName": "SalesLTProductDescription.csv"
+						}
+					},
+					{
+						"source": {
+							"table": "ProductModel"
+						},
+						"destination": {
+							"fileName": "SalesLTProductModel.csv"
+						}
+					},
+					{
+						"source": {
+							"table": "ProductModelProductDescription"
+						},
+						"destination": {
+							"fileName": "SalesLTProductModelProductDescription.csv"
+						}
+					},
+					{
+						"source": {
+							"table": "SalesOrderDetail"
+						},
+						"destination": {
+							"fileName": "SalesLTSalesOrderDetail.csv"
+						}
+					},
+					{
+						"source": {
+							"table": "SalesOrderHeader"
+						},
+						"destination": {
+							"fileName": "SalesLTSalesOrderHeader.csv"
+						}
+					}
+				]
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2020-05-10T01:10:24Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
